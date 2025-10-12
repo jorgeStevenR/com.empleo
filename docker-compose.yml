@@ -1,0 +1,14 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: portal_empleos_backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://aws-1-us-east-1.pooler.supabase.com:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres.xrhzsecxnuvaqblbxigf
+      SPRING_DATASOURCE_PASSWORD: NdgwhFywcamodgFE
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+    restart: unless-stopped

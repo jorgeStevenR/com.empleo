@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Usuarios</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding:24px; background:#f7f7fb; margin:0; }
+    .top { display:flex; gap:10px; align-items:center; }
+    button, a.btn { padding:10px 14px; border:none; border-radius:8px; background:#3b82f6; color:#fff; text-decoration:none; cursor:pointer; }
+    a.btn { display:inline-block; }
+    table { width:100%; border-collapse:collapse; margin-top:16px; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 8px 30px rgba(0,0,0,.06); }
+    th, td { padding:12px; border-bottom:1px solid #f0f0f0; text-align:left; }
+    th { background:#f9fafb; }
+    .msg { margin-left:10px; color:#374151; }
+  </style>
+</head>
+<body>
+  <div class="top">
+    <a class="btn" href="/">Inicio</a>
+    <button id="load">Cargar usuarios</button>
+    <span class="msg" id="msg"></span>
+  </div>
+
+  <table id="tbl" hidden>
+    <thead>
+      <tr>
+        <th>ID</th><th>Nombre</th><th>Email</th><th>Creado</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const loadBtn = document.getElementById('load');
+    const msg = document.getElementById('msg');
+    const tbl = document.getElementById('tbl');
+    const tbody = tbl.querySelector('tbody');
+
+    loadBtn.addEventListener('click', async () => {
+      msg.textContent = 'Cargando...';
+      tbody.innerHTML = '';
+      try {
+        const res = await fetch('/api/users');
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (data.length === 0) {
+          msg.textContent = 'No hay usuarios aún.';
+          tbl.hidden = true;
+          return;
+        }
+        data.forEach(u => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${u.id_user ?? u.id ?? ''}</td>
+            <td>${u.name ?? ''}</td>
+            <td>${u.email ?? ''}</td>
+            <td>${u.created_at ?? ''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        tbl.hidden = false;
+        msg.textContent = `Total: ${data.length}`;
+      } catch (err) {
+        msg.textContent = '❌ Error: ' + err.message;
+        tbl.hidden = true;
+      }
+    });
+  </script>
+</body>
+</html>
