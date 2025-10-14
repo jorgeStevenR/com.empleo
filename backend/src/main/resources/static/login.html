@@ -26,40 +26,61 @@
     <a href="/">Volver</a>
   </form>
 
-  <script>
-    const form = document.getElementById('form');
-    const msg = document.getElementById('msg');
+<script>
+  const form = document.getElementById('form');
+  const msg = document.getElementById('msg');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = 'Verificando...';
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = 'Verificando...';
 
-      const payload = {
-        email: document.getElementById('email').value.trim(),
-        password: document.getElementById('password').value
-      };
+    const payload = {
+      email: document.getElementById('email').value.trim(),
+      password: document.getElementById('password').value
+    };
 
-      try {
-        const res = await fetch('/api/users/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
+    try {
+      const res = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        redirect: 'follow' // por si el server intenta redirigir
+      });
 
-        if (!res.ok) throw new Error('Error HTTP: ' + res.status);
-        const data = await res.json();
-
-        if (data.ok) {
-          localStorage.setItem('user', JSON.stringify(data));
-          msg.textContent = '✅ Login exitoso. Redirigiendo...';
-          setTimeout(() => location.href = '/users.html', 700);
-        } else {
-          msg.textContent = '❌ ' + (data.message || 'Credenciales incorrectas');
-        }
-      } catch (err) {
-        msg.textContent = '❌ Error en login: ' + err.message;
+      // Obtén tipo de contenido para decidir cómo leer
+      const ctype = (res.headers.get('content-type') || '').toLowerCase();
+      let data;
+      if (ctype.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        throw new Error(`Respuesta no JSON del servidor: ${text.slice(0,120)}${text.length>120?'…':''}`);
       }
-    });
-  </script>
+
+      if (!res.ok) {
+        // si vino JSON pero con error HTTP
+        throw new Error(data?.message || `Error HTTP: ${res.status}`);
+      }
+
+      // Acepta varias convenciones: ok/success/token
+      const loginOk = data?.ok === true || data?.success === true || !!data?.token;
+      if (loginOk) {
+        // guarda solo lo necesario
+        const userToStore = {
+          user: data.user ?? null,
+          token: data.token ?? null
+        };
+        localStorage.setItem('user', JSON.stringify(userToStore));
+        msg.textContent = '✅ Login exitoso. Redirigiendo…';
+        setTimeout(() => location.href = '/users.html', 700);
+      } else {
+        msg.textContent = '❌ ' + (data?.message || 'Credenciales incorrectas');
+      }
+    } catch (err) {
+      msg.textContent = '❌ Error en login: ' + err.message;
+      console.error(err);
+    }
+  });
+</script>
 </body>
 </html>
