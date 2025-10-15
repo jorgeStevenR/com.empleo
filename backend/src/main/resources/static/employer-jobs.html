@@ -5,6 +5,18 @@
   <title>Empresa — Vacantes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="/assets/app.css">
+  <style>
+    /* Layout vertical para las dos tarjetas */
+    .stack-vertical{ display:grid; grid-template-columns: 1fr; gap:16px; }
+    /* (Opcional) si quieres volver a 2 columnas en pantallas grandes, descomenta:
+    @media (min-width: 1100px){
+      .stack-vertical{ grid-template-columns: 1fr; } 
+      -- Mantener 1 columna siempre, como pediste.
+      -- Si quisieras 2 columnas otra vez en desktop, usa:
+      -- .stack-vertical{ grid-template-columns: 420px 1fr; }
+    }
+    */
+  </style>
 </head>
 <body>
   <header>
@@ -16,7 +28,10 @@
 
   <main class="container">
     <h2>Vacantes</h2>
-    <div class="grid" style="grid-template-columns:420px 1fr">
+
+    <!-- Cambié la clase: antes era class="grid" con 2 columnas inline -->
+    <div class="stack-vertical">
+      <!-- ====== Caja 1: Crear vacante ====== -->
       <section class="card">
         <h3 style="margin:0 0 8px">Crear vacante</h3>
         <div class="field"><label>Título</label><input id="title" required></div>
@@ -28,6 +43,7 @@
         <p id="formMsg" class="msg"></p>
       </section>
 
+      <!-- ====== Caja 2: Listado / acciones ====== -->
       <section class="card">
         <div class="grid" style="grid-template-columns:1fr auto auto;align-items:center">
           <input id="q" type="search" placeholder="Buscar…">
@@ -35,7 +51,12 @@
           <button class="btn" id="exportBtn">Exportar CSV</button>
         </div>
         <div class="tableWrap" style="margin-top:12px">
-          <table><thead><tr><th>ID</th><th>Título</th><th>Empresa</th><th>Ubicación</th><th>Creado</th></tr></thead><tbody id="tbody"></tbody></table>
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Título</th><th>Empresa</th><th>Ubicación</th><th>Creado</th></tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
         </div>
         <p id="listMsg" class="msg"></p>
       </section>
@@ -74,11 +95,12 @@
 
     qs('#createBtn').onclick=async ()=>{
       const payload={ title:title.value.trim(), location:locationEl.value.trim(), description:description.value.trim(), created_at:new Date().toISOString() };
-      if(company.value.trim())   payload.company   = company.value.trim();     // visible
+      if(company.value.trim())    payload.company    = company.value.trim();     // visible
       if(companyNit.value.trim()) payload.companyNit = companyNit.value.trim(); // asociación
       if(!payload.title||!payload.location||!payload.description){ setMsg(formMsg,'Completa los campos',true); return; }
       try{
-        setMsg(formMsg,'Publicando…'); await fetchJSON('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        setMsg(formMsg,'Publicando…');
+        await fetchJSON('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
         setMsg(formMsg,'✅ Publicado');
         title.value=company.value=companyNit.value=locationEl.value=description.value=''; load();
       }catch(e){ setMsg(formMsg,'❌ '+e.message,true); }
@@ -87,9 +109,11 @@
     qs('#exportBtn').onclick=async ()=>{
       try{
         const jobs=await fetchJSON('/api/jobs');
-        const rows=[['id','title','company','location','created_at'],...jobs.map(j=>[j.id_job??j.id,j.title||'',j.companyDisplay||j.company||'',j.location||'',fmtDate(j.created_at||j.createdAt)])];
+        const rows=[['id','title','company','location','created_at'],
+          ...jobs.map(j=>[j.id_job??j.id,j.title||'',j.companyDisplay||j.company||'',j.location||'',fmtDate(j.created_at||j.createdAt)])];
         const csv=rows.map(r=>r.map(c=>{const s=String(c??'');return /[",\n]/.test(s)?`"${s.replace(/"/g,'""')}"`:s}).join(',')).join('\n');
-        const blob=new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='vacantes.csv'; a.click(); URL.revokeObjectURL(url);
+        const blob=new Blob([csv],{type:'text/csv'}), url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download='vacantes.csv'; a.click(); URL.revokeObjectURL(url);
       }catch(e){ setMsg(listMsg,'❌ '+e.message,true); }
     };
 
