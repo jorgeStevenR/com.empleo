@@ -1,0 +1,83 @@
+:root{
+  color-scheme: light dark;
+  --bg:#0b1020; --text:#e6e9f2; --muted:#b7bfd9; --card:rgba(15,20,43,.78);
+  --primary:#6ea8ff; --primary-600:#4d8dff; --ring:rgba(110,168,255,.35);
+  --border: color-mix(in srgb, var(--ring) 45%, transparent);
+  --ok:#22c55e; --danger:#ef4444; --warn:#f59e0b;
+  --shadow: 0 24px 60px rgba(0,0,0,.45); --shadow-soft: 0 10px 30px rgba(0,0,0,.28);
+  --grad: radial-gradient(1200px 600px at 10% -10%, rgba(110,168,255,.18), transparent 40%),
+          radial-gradient(1000px 500px at 90% -20%, rgba(34,197,94,.14), transparent 50%);
+  --stripe: color-mix(in srgb, #fff 6%, transparent);
+}
+@media (prefers-color-scheme: light){
+ :root{ --bg:#f4f6fb; --text:#0f172a; --muted:#52607a; --card:#fff;
+        --primary:#2563eb; --primary-600:#1d4ed8; --ring:rgba(37,99,235,.24);
+        --border: color-mix(in srgb, var(--ring) 45%, transparent);
+        --shadow:0 24px 60px rgba(2,6,23,.12); --shadow-soft:0 10px 30px rgba(2,6,23,.08);
+        --grad: radial-gradient(1200px 600px at 10% -10%, rgba(37,99,235,.10), transparent 40%),
+                radial-gradient(1000px 500px at 90% -20%, rgba(16,185,129,.10), transparent 50%);
+        --stripe:#f8fafc; }
+}
+*{box-sizing:border-box} html,body{height:100%}
+body{
+  margin:0; color:var(--text);
+  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  background:var(--grad), linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 85%, #000 15%));
+}
+.container{ max-width:1100px; margin:24px auto; padding:0 16px; }
+header{
+  display:flex; gap:10px; align-items:center; padding:14px 16px;
+  position:sticky; top:0; z-index:5;
+  backdrop-filter: blur(10px); background: color-mix(in srgb, #000 8%, transparent);
+  border-bottom:1px solid color-mix(in srgb, var(--border) 40%, transparent);
+}
+.brand{ font-weight:800; letter-spacing:.2px }
+.spacer{flex:1}
+.btn, a.btn{
+  padding:10px 14px; border-radius:12px;
+  border:1px solid color-mix(in srgb, var(--primary) 30%, transparent);
+  background:linear-gradient(180deg, var(--primary), var(--primary-600));
+  color:#fff; text-decoration:none; font-weight:700; cursor:pointer;
+  box-shadow:var(--shadow-soft); transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn:hover{ transform:translateY(-1px); filter:brightness(1.03); box-shadow:var(--shadow) }
+.btn.ghost{ background:transparent; color:inherit }
+.card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:16px; box-shadow:var(--shadow);
+}
+.grid{ display:grid; gap:16px }
+.grid.cards{ grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); }
+h1{ margin:.4rem 0 1rem; font-size: clamp(24px, 4.5vw, 36px) }
+h2{ margin:0 0 12px }
+.muted{ color:var(--muted) }
+.field{ display:grid; gap:6px; margin:10px 0 }
+label{ font-size:13px; color:var(--muted) }
+input, textarea, select{
+  width:100%; padding:12px; border-radius:12px; border:1px solid var(--border);
+  background: color-mix(in srgb, #fff 3%, transparent); color:inherit; outline:none;
+}
+input:focus, textarea:focus, select:focus{
+  border-color:var(--primary); box-shadow:0 0 0 4px var(--ring);
+}
+.tableWrap{ overflow:auto; border-radius:12px; border:1px solid var(--border) }
+table{ width:100%; border-collapse:collapse; min-width:820px }
+th, td{ padding:12px; border-bottom:1px solid color-mix(in srgb, var(--border) 50%, transparent) }
+thead th{ position:sticky; top:0; background: color-mix(in srgb, var(--card) 92%, transparent) }
+tbody tr:nth-child(odd){ background: var(--stripe) }
+.msg{ margin-top:8px; color:var(--muted) } .msg.err{ color:var(--danger) }
+.status{ padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); display:inline-block }
+.status.Pendiente{ background:color-mix(in srgb, var(--warn) 12%, transparent) }
+.status.Revisando{ background:color-mix(in srgb, var(--primary) 12%, transparent) }
+.status.Rechazado{ background:color-mix(in srgb, var(--danger) 12%, transparent) }
+.status.Aceptado{ background:color-mix(in srgb, var(--ok) 12%, transparent) }
+.skeleton{
+  height:18px; border-radius:8px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--card) 70%, #fff 30%) 0%,
+    color-mix(in srgb, var(--card) 92%, #fff 8%) 40%,
+    color-mix(in srgb, var(--card) 70%, #fff 30%) 80%);
+  background-size:200% 100%; animation: shimmer 1.2s infinite linear;
+}
+@keyframes shimmer{ from{background-position:200% 0} to{background-position:-200% 0} }
+@media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }

@@ -2,85 +2,134 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
+  <title>Iniciar sesión</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/assets/app.css">
   <style>
-    body { font-family: Arial, sans-serif; display:grid; place-items:center; min-height:100vh; background:#f7f7fb; margin:0; }
-    form { background:#fff; width:340px; padding:24px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.08); }
-    h2 { margin-top:0; }
-    label { display:block; margin:10px 0 6px; font-size:14px; color:#374151; }
-    input { width:100%; padding:10px; border-radius:8px; border:1px solid #d1d5db; }
-    button { margin-top:16px; width:100%; padding:12px; border:none; border-radius:10px; background:#10b981; color:#fff; cursor:pointer; }
-    .msg { margin-top:10px; font-size:14px; }
-    a { display:inline-block; margin-top:12px; color:#2563eb; text-decoration:none; }
+    :root { --bg1:#f7f8fc; --bg2:#eef2ff; --ink:#0f172a; --muted:#6b7280; --brand:#2563eb; }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      background: radial-gradient(80% 60% at 50% 0%, var(--bg2) 0%, var(--bg1) 50%, #f5f6fa 100%);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial, sans-serif;
+      color:var(--ink);
+    }
+    .auth{
+      width:min(420px, 92vw);
+      padding:22px 20px 18px;
+      border-radius:18px;
+      background:#fff;
+      box-shadow: 0 30px 60px rgba(15,23,42,.08), 0 2px 10px rgba(15,23,42,.05);
+      border: 1px solid #eef1f6;
+    }
+    h1{ margin:0 0 14px; font-size:24px; letter-spacing:.2px }
+
+    .field{ display:grid; gap:6px; margin:10px 0 }
+    .field label{ font-size:13px; color:var(--muted) }
+    input{
+      width:100%; padding:12px 12px; border-radius:12px;
+      border:1px solid #e6e9f2; outline:none; font-size:15px; background:#fbfcff;
+      transition: box-shadow .15s, border-color .15s, background .15s;
+    }
+    input:focus{ border-color:#c7d2fe; box-shadow:0 0 0 4px #e5edff }
+
+    .actions{
+      display:flex; gap:10px; justify-content:space-between; align-items:center; margin-top:8px;
+    }
+    .btn{
+      border:0; padding:10px 14px; border-radius:12px; font-weight:700; cursor:pointer;
+      background:var(--brand); color:#fff; transition:transform .06s ease;
+    }
+    .btn:active{ transform:translateY(1px) }
+    .ghost{ background:#fff; color:var(--brand); border:1px solid #dbe4ff; }
+    .btn:disabled{ opacity:.7; cursor:wait }
+
+    .foot{ margin-top:14px }
+    .foot .t{ text-align:left; font-size:12px; color:var(--muted); margin-bottom:6px }
+    .links{ display:flex; gap:16px; justify-content:flex-start; }
+    .links a{
+      font-size:13px; color:var(--brand); text-decoration:none; padding:2px 0;
+      border-bottom:1px solid transparent;
+    }
+    .links a:hover{ border-bottom-color: currentColor }
+
+    .msg{ min-height:18px; margin-top:8px; font-size:13px; color:#374151 }
+    .msg.err{ color:#b91c1c }
   </style>
 </head>
 <body>
-  <form id="form">
-    <h2>Iniciar sesión</h2>
-    <label>Email</label>
-    <input id="email" type="email" required />
-    <label>Contraseña</label>
-    <input id="password" type="password" required />
-    <button type="submit">Entrar</button>
-    <div class="msg" id="msg"></div>
-    <a href="/">Volver</a>
+
+  <form id="form" class="auth" novalidate>
+    <h1>Iniciar sesión</h1>
+
+    <div class="field">
+      <label>Email</label>
+      <input id="email" type="email" required autocomplete="username" placeholder="tu@correo.com">
+    </div>
+
+    <div class="field">
+      <label>Contraseña</label>
+      <input id="password" type="password" required autocomplete="current-password" placeholder="••••••••">
+    </div>
+
+    <div class="actions">
+      <a class="btn ghost" href="/register.html">Crear cuenta</a>
+      <button id="btn" class="btn" type="submit">Entrar</button>
+    </div>
+
+    <p id="msg" class="msg" aria-live="polite"></p>
+
+    <div class="foot">
+      <div class="t">no has iniciado sesión</div>
+      <div class="links">
+        <a href="/register.html?role=USER">registrarme como usuario</a>
+        <a href="/register.html?role=EMPLOYER">registrarme como empresa</a>
+      </div>
+    </div>
   </form>
 
-<script>
-  const form = document.getElementById('form');
-  const msg = document.getElementById('msg');
+  <script src="/assets/app.js"></script>
+  <script>
+    const { setUser, qs } = App;
+    const form = qs('#form'), msg = qs('#msg'), btn = qs('#btn');
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    msg.textContent = 'Verificando...';
-
-    const payload = {
-      email: document.getElementById('email').value.trim(),
-      password: document.getElementById('password').value
+    const redirectByRole = (role)=>{
+      const r=(role||'USER').toUpperCase();
+      if (r==='EMPLOYER') return '/employer-jobs.html';
+      if (r==='ADMIN')    return '/users.html';
+      return '/job.html';
     };
 
-    try {
-      const res = await fetch('/api/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        redirect: 'follow' // por si el server intenta redirigir
-      });
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = qs('#email').value.trim();
+      const password = qs('#password').value;
+      if (!email || !password){ msg.textContent='Completa los campos.'; msg.classList.remove('err'); return; }
+      btn.disabled = true; msg.textContent = 'Verificando…'; msg.classList.remove('err');
 
-      // Obtén tipo de contenido para decidir cómo leer
-      const ctype = (res.headers.get('content-type') || '').toLowerCase();
-      let data;
-      if (ctype.includes('application/json')) {
-        data = await res.json();
-      } else {
-        const text = await res.text();
-        throw new Error(`Respuesta no JSON del servidor: ${text.slice(0,120)}${text.length>120?'…':''}`);
-      }
+      try{
+        const res = await fetch('/api/users/login', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email, password })
+        });
+        const ct = (res.headers.get('content-type')||'').toLowerCase();
+        if (!ct.includes('application/json')) throw new Error('El servidor no envió JSON');
+        const data = await res.json();
+        if (!res.ok || data.ok !== true) throw new Error(data?.message || ('HTTP '+res.status));
 
-      if (!res.ok) {
-        // si vino JSON pero con error HTTP
-        throw new Error(data?.message || `Error HTTP: ${res.status}`);
-      }
+        setUser(data.user || null);
+        if (data.token) localStorage.setItem('token', data.token);
 
-      // Acepta varias convenciones: ok/success/token
-      const loginOk = data?.ok === true || data?.success === true || !!data?.token;
-      if (loginOk) {
-        // guarda solo lo necesario
-        const userToStore = {
-          user: data.user ?? null,
-          token: data.token ?? null
-        };
-        localStorage.setItem('user', JSON.stringify(userToStore));
         msg.textContent = '✅ Login exitoso. Redirigiendo…';
-        setTimeout(() => location.href = '/users.html', 700);
-      } else {
-        msg.textContent = '❌ ' + (data?.message || 'Credenciales incorrectas');
+        const next=new URL(location.href).searchParams.get('next');
+        setTimeout(()=>location.replace(next || redirectByRole(data.user?.role)), 400);
+      }catch(err){
+        msg.textContent = '❌ ' + err.message;
+        msg.classList.add('err');
+      }finally{
+        btn.disabled = false;
       }
-    } catch (err) {
-      msg.textContent = '❌ Error en login: ' + err.message;
-      console.error(err);
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>

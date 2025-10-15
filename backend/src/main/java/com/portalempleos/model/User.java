@@ -13,55 +13,51 @@ public class User {
     private Long idUser;
 
     private String name;
+
+    @Column(nullable = false)
     private String email;
+
+    // Nota: en prod deberías hashear esta contraseña
+    @Column(nullable = false)
     private String password;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    // USER | EMPLOYER | ADMIN
+    @Column(name = "role")
+    private String role = "USER";
+
+    // Relación opcional: a qué empresa pertenece el usuario (empleador)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_company")
+    private Company companyEntity;
+
     @PrePersist
     public void prePersist() {
-        createdAt = LocalDateTime.now();
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (role == null || role.isBlank()) role = "USER";
     }
 
-    // Getters y Setters
-    public Long getIdUser() {
-        return idUser;
-    }
+    // ===== Getters & Setters =====
+    public Long getIdUser() { return idUser; }
+    public void setIdUser(Long idUser) { this.idUser = idUser; }
 
-    public void setIdUser(Long idUser) {
-        this.idUser = idUser;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public String getName() {
-        return name;
-    }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public String getEmail() {
-        return email;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    public Company getCompanyEntity() { return companyEntity; }
+    public void setCompanyEntity(Company companyEntity) { this.companyEntity = companyEntity; }
 }
