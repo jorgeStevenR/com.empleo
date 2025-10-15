@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Ofertas de trabajo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <header>
+    <a class="btn ghost" href="/">Inicio</a>
+    <div class="spacer"></div>
+    <span id="welcome" class="muted"></span>
+    <a id="empLink" class="btn ghost" href="/employer-jobs.html" style="display:none">Panel empresa</a>
+    <a id="loginLink" class="btn" href="/login.html">Entrar</a>
+    <button id="logoutBtn" class="btn ghost" style="display:none">Salir</button>
+  </header>
+
+  <main class="container">
+    <h2>Ofertas de trabajo</h2>
+    <div class="grid" style="grid-template-columns:1fr auto;gap:10px;align-items:center">
+      <input id="q" type="search" placeholder="Buscar por título o empresa…">
+      <button id="btnSearch" class="btn ghost">Buscar</button>
+    </div>
+
+    <div id="jobs" class="grid cards" style="margin-top:14px"></div>
+    <p id="msg" class="msg"></p>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    const {qs,escapeHtml,fetchJSON,wireHeader,getUser,role} = App;
+    wireHeader();
+    const jobsEl=qs('#jobs'), msg=qs('#msg'), q=qs('#q'), btn=qs('#btnSearch');
+
+    async function loadJobs(term=''){
+      msg.textContent='Cargando…'; jobsEl.innerHTML='';
+      try{
+        const data=await fetchJSON('/api/jobs');
+        const list=(term||'').toLowerCase();
+        const filtered = list? data.filter(j=> (j.title||'').toLowerCase().includes(list) || (j.companyDisplay||j.company||'').toLowerCase().includes(list) ) : data;
+        if(!filtered.length){ msg.textContent=list?'Sin resultados.':'No hay ofertas aún.'; return; }
+        for(const j of filtered){
+          const id=j.id_job??j.id, comp=j.companyDisplay||j.company||'', r=role();
+          const postHref = (getUser() && r==='USER') ? `/apply.html?jobId=${encodeURIComponent(id)}` : `/login.html?next=${encodeURIComponent('/apply.html?jobId='+id)}`;
+          const card=document.createElement('div'); card.className='card';
+          card.innerHTML = `
+            <h3 style="margin:0">${escapeHtml(j.title||'')}</h3>
+            <p class="muted">${escapeHtml(comp)} — ${escapeHtml(j.location||'')}</p>
+            <p>${escapeHtml(j.description||'')}</p>
+            <div style="display:flex; gap:8px; margin-top:auto; flex-wrap:wrap">
+              <a class="btn" href="${postHref}">Postular</a>
+              ${r==='EMPLOYER'||r==='ADMIN'?`<a class="btn ghost" href="/employer-applications.html">Ver postulaciones</a>`:''}
+            </div>`;
+          jobsEl.appendChild(card);
+        }
+        msg.textContent=`Total: ${filtered.length}${list?' (filtrado)':''}`;
+      }catch(e){ msg.textContent='Error: '+e.message; msg.classList.add('err'); }
+    }
+    btn.addEventListener('click', ()=> loadJobs(q.value));
+    q.addEventListener('keydown', e=>{ if(e.key==='Enter') loadJobs(q.value); });
+    loadJobs();
+  </script>
+  <script src="/assets/app.js"></script>
+</body>
+</html>

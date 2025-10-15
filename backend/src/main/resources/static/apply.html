@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Postular a empleo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/assets/app.css">
+</head>
+<body>
+  <header>
+    <a class="btn ghost" href="/job.html">Volver</a><div class="spacer"></div>
+    <span id="welcome" class="muted"></span>
+    <button id="logoutBtn" class="btn ghost">Salir</button>
+  </header>
+
+  <main class="container">
+    <h2>Postulación</h2>
+    <form id="form" class="card" style="max-width:720px">
+      <div class="field"><label>Empleo</label><input id="jobTitle" disabled></div>
+      <div class="field"><label>Carta de presentación</label><textarea id="cover" required placeholder="Cuéntanos por qué eres ideal…"></textarea></div>
+      <div class="field"><label>URL de CV o imagen</label><input id="url" type="url" placeholder="https://…" /></div>
+      <button class="btn" type="submit">Enviar postulación</button>
+      <p id="msg" class="msg"></p>
+    </form>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    const {qs,fetchJSON,fmtDate,escapeHtml,getUser,requireRole,wireHeader} = App;
+    requireRole('USER'); wireHeader();
+    const params=new URLSearchParams(location.search); const jobId=params.get('jobId');
+    const user=getUser(); const msg=qs('#msg');
+
+    async function loadJob(){
+      try{
+        const job=await fetchJSON('/api/jobs/'+jobId);
+        const j=job||{}; qs('#jobTitle').value=`${j.title||''} — ${j.location||''}`;
+      }catch{ qs('#jobTitle').value='(Empleo)'; }
+    }
+    document.getElementById('logoutBtn').onclick=()=>App.logout();
+
+    qs('#form').addEventListener('submit', async (e)=>{
+      e.preventDefault(); msg.textContent='Enviando…';
+      const payload={
+        user:user, job:{id_job:Number(jobId)},
+        cover_letter:qs('#cover').value.trim(),
+        url_img:qs('#url').value.trim(),
+        status:'Pendiente', applied_at:new Date().toISOString()
+      };
+      try{
+        const res=await fetch('/api/applications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const data=await res.json();
+        if(!res.ok) throw new Error('HTTP '+res.status);
+        msg.textContent='✅ Postulación enviada.'; setTimeout(()=>location.href='/job.html',800);
+      }catch(e){ msg.textContent='❌ '+e.message; msg.classList.add('err'); }
+    });
+    if(jobId) loadJob();
+  </script>
+  <script src="/assets/app.js"></script>
+</body>
+</html>

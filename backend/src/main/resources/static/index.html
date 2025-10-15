@@ -1,21 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Portal Empleos - Login</title>
-    <style>
-        body { font-family: Arial; background: #eee; text-align: center; padding-top: 100px; }
-        form { background: white; display: inline-block; padding: 30px; border-radius: 10px; }
-        input { display: block; margin: 10px auto; padding: 10px; width: 200px; }
-        button { background: #007bff; color: white; border: none; padding: 10px 20px; cursor: pointer; }
-    </style>
+  <meta charset="utf-8" />
+  <title>Portal Empleos — Inicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/assets/app.css">
 </head>
 <body>
-    <h2>Please sign in</h2>
-    <form>
-        <input type="text" placeholder="Username" />
-        <input type="password" placeholder="Password" />
-        <button type="submit">Sign in</button>
-    </form>
+  <header>
+    <div class="brand">Portal Empleos</div>
+    <div class="spacer"></div>
+    <a class="btn ghost" href="/job.html">Ver empleos</a>
+    <a id="loginLink" class="btn" href="/login.html">Entrar</a>
+    <button id="logoutBtn" class="btn ghost" style="display:none">Salir</button>
+  </header>
+
+  <main class="container">
+    <section class="grid" style="grid-template-columns:1.2fr 1fr; align-items:center">
+      <div>
+        <h1>Encuentra trabajo o publica vacantes</h1>
+        <p class="muted">Acceso por roles: <b>USER</b> (candidato), <b>EMPLOYER</b> (empresa), <b>ADMIN</b>.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
+          <a class="btn" href="/login.html">Iniciar sesión</a>
+          <a class="btn ghost" href="/register.html">Crear cuenta</a>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin:0 0 8px">¿Qué puedes hacer?</h3>
+        <ul style="margin:0 0 6px 16px">
+          <li>Ver empleos y postularte</li>
+          <li>Crear vacantes y revisar postulaciones</li>
+          <li>Paneles dedicados por rol</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="grid cards" id="panel" style="display:none; margin-top:18px"></section>
+  </main>
+
+  <script src="/assets/app.js"></script>
+  <script>
+    const {getUser,role,qs} = App;
+    App.wireHeader();
+    const u = getUser();
+    if (u){
+      const p = qs('#panel'); p.style.display='grid';
+      const add = (href,t,d)=>{ const a=document.createElement('a'); a.className='card'; a.href=href; a.innerHTML=`<h3>${t}</h3><p class="muted">${d}</p>`; p.appendChild(a); };
+      if (role()==='EMPLOYER' || role()==='ADMIN'){
+        add('/employer-jobs.html','Vacantes','Crea/gestiona empleos');
+        add('/employer-applications.html','Postulaciones','Revisa candidatos');
+        add('/companies.html','Empresas','Administra compañías');
+        add('/job.html','Listado público','Cómo se ven tus vacantes');
+      } else {
+        add('/job.html','Empleos','Explora y postúlate');
+        add('/apply.html','Postularme','Formulario directo de postulación');
+      }
+    }
+  </script>
+  <script src="/assets/app.js"></script>
 </body>
 </html>
