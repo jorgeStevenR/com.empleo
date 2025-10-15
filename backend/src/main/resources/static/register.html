@@ -2,59 +2,92 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Registro</title>
+  <title>Crear cuenta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="/assets/app.css">
   <style>
-    body { font-family: Arial, sans-serif; display:grid; place-items:center; min-height:100vh; background:#f7f7fb; margin:0; }
-    form { background:#fff; width:340px; padding:24px; border-radius:14px; box-shadow:0 8px 30px rgba(0,0,0,.08); }
-    h2 { margin-top:0; }
-    label { display:block; margin:10px 0 6px; font-size:14px; color:#374151; }
-    input { width:100%; padding:10px; border-radius:8px; border:1px solid #d1d5db; }
-    button { margin-top:16px; width:100%; padding:12px; border:none; border-radius:10px; background:#3b82f6; color:#fff; cursor:pointer; }
-    .msg { margin-top:10px; font-size:14px; }
-    a { display:inline-block; margin-top:12px; color:#2563eb; text-decoration:none; }
+    .seg{display:flex;gap:8px;background:color-mix(in srgb,var(--card) 80%, transparent);
+         border:1px solid var(--border); padding:6px; border-radius:12px; width:max-content}
+    .seg button{border:none;background:transparent;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700}
+    .seg button.active{background:linear-gradient(180deg,var(--primary),var(--primary-600));color:#fff}
   </style>
 </head>
 <body>
-  <form id="form">
-    <h2>Registrar usuario</h2>
-    <label>Nombre</label>
-    <input id="name" type="text" required />
-    <label>Email</label>
-    <input id="email" type="email" required />
-    <label>Contraseña</label>
-    <input id="password" type="password" required />
-    <button type="submit">Crear cuenta</button>
-    <div class="msg" id="msg"></div>
-    <a href="/">Volver</a>
-  </form>
+  <header>
+    <div class="brand">Portal Empleos</div>
+    <div class="spacer"></div>
+    <a class="btn ghost" href="/">Inicio</a>
+  </header>
 
+  <main class="container" style="display:grid;place-items:center">
+    <form id="form" class="card" style="width:min(720px,94vw)" novalidate>
+      <h2 style="margin:0 0 12px">Crear cuenta</h2>
+
+      <div class="seg" role="tablist" aria-label="Tipo de cuenta">
+        <button type="button" id="segUser" class="active" aria-selected="true">Candidato</button>
+        <button type="button" id="segEmp">Empresa</button>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div class="field" style="grid-column:1/-1"><label>Nombre</label><input id="name" required></div>
+        <div class="field"><label>Email</label><input id="email" type="email" required></div>
+        <div class="field"><label>Contraseña</label><input id="password" type="password" required></div>
+        <input id="role" type="hidden" value="USER">
+        <div id="companyWrap" class="field" style="display:none">
+          <label>NIT de empresa (opcional)</label>
+          <input id="companyNit" placeholder="Ej: 901234567-8">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap">
+        <a class="btn ghost" href="/login.html">Ya tengo cuenta</a>
+        <button class="btn" type="submit">Crear</button>
+      </div>
+      <p id="msg" class="msg"></p>
+    </form>
+  </main>
+
+  <script src="/assets/app.js"></script>
   <script>
-    const form = document.getElementById('form');
-    const msg = document.getElementById('msg');
+    const { qs } = App;
+    const segUser=qs('#segUser'), segEmp=qs('#segEmp'), role=qs('#role'), companyWrap=qs('#companyWrap');
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      msg.textContent = 'Enviando...';
+    function setMode(r){
+      role.value = r;
+      const emp = r === 'EMPLOYER';
+      companyWrap.style.display = emp ? 'block' : 'none';
+      segUser.classList.toggle('active', !emp);
+      segEmp.classList.toggle('active', emp);
+    }
 
-      const payload = {
-        name: document.getElementById('name').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        password: document.getElementById('password').value
+    const pRole = new URL(location.href).searchParams.get('role');
+    setMode((pRole||'USER').toUpperCase()==='EMPLOYER' ? 'EMPLOYER' : 'USER');
+
+    segUser.onclick = ()=> setMode('USER');
+    segEmp.onclick  = ()=> setMode('EMPLOYER');
+
+    const form=qs('#form'), msg=qs('#msg');
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault(); msg.textContent='Enviando…';
+      const payload={
+        name:qs('#name').value.trim(),
+        email:qs('#email').value.trim(),
+        password:qs('#password').value,
+        role:qs('#role').value
       };
+      const nit=qs('#companyNit').value.trim(); if(nit) payload.companyNit = nit;
 
-      try {
+      try{
         const res = await fetch('/api/users/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify(payload)
         });
-
-        if (!res.ok) throw new Error('Error HTTP: ' + res.status);
         const data = await res.json();
-        msg.textContent = `✅ Registrado: ${data.name} (${data.email})`;
-        setTimeout(() => location.href = '/login.html', 700);
-      } catch (err) {
-        msg.textContent = '❌ Error registrando: ' + err.message;
+        if (!res.ok || data.ok !== true) throw new Error(data?.message || ('HTTP '+res.status));
+        msg.textContent='✅ Cuenta creada. Te llevamos al login…';
+        setTimeout(()=> location.href='/login.html', 700);
+      }catch(err){
+        msg.textContent='❌ '+err.message; msg.classList.add('err');
       }
     });
   </script>
