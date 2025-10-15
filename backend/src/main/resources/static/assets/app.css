@@ -1,3 +1,6 @@
+/* =========================
+   1) Variables y tema
+   ========================= */
 :root{
   color-scheme: light dark;
   --bg:#0b1020; --text:#e6e9f2; --muted:#b7bfd9; --card:rgba(15,20,43,.78);
@@ -10,35 +13,61 @@
   --stripe: color-mix(in srgb, #fff 6%, transparent);
 }
 @media (prefers-color-scheme: light){
- :root{ --bg:#f4f6fb; --text:#0f172a; --muted:#52607a; --card:#fff;
-        --primary:#2563eb; --primary-600:#1d4ed8; --ring:rgba(37,99,235,.24);
-        --border: color-mix(in srgb, var(--ring) 45%, transparent);
-        --shadow:0 24px 60px rgba(2,6,23,.12); --shadow-soft:0 10px 30px rgba(2,6,23,.08);
-        --grad: radial-gradient(1200px 600px at 10% -10%, rgba(37,99,235,.10), transparent 40%),
-                radial-gradient(1000px 500px at 90% -20%, rgba(16,185,129,.10), transparent 50%);
-        --stripe:#f8fafc; }
+  :root{
+    --bg:#f4f6fb; --text:#0f172a; --muted:#52607a; --card:#fff;
+    --primary:#2563eb; --primary-600:#1d4ed8; --ring:rgba(37,99,235,.24);
+    --border: color-mix(in srgb, var(--ring) 45%, transparent);
+    --shadow:0 24px 60px rgba(2,6,23,.12); --shadow-soft:0 10px 30px rgba(2,6,23,.08);
+    --grad: radial-gradient(1200px 600px at 10% -10%, rgba(37,99,235,.10), transparent 40%),
+            radial-gradient(1000px 500px at 90% -20%, rgba(16,185,129,.10), transparent 50%);
+    --stripe:#f8fafc;
+  }
 }
-*{box-sizing:border-box} html,body{height:100%}
+
+/* =========================
+   2) Reset y base
+   ========================= */
+*{ box-sizing:border-box }
+html,body{ height:100% }
 body{
   margin:0; color:var(--text);
   font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
   background:var(--grad), linear-gradient(180deg, var(--bg), color-mix(in srgb, var(--bg) 85%, #000 15%));
 }
+h1{ margin:.4rem 0 1rem; font-size: clamp(24px, 4.5vw, 36px) }
+h2{ margin:0 0 12px }
+.muted{ color:var(--muted) }
+
+/* =========================
+   3) Layout
+   ========================= */
 .container{ max-width:1100px; margin:24px auto; padding:0 16px; }
+.grid{ display:grid; gap:16px }
+.grid.cards{ grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); }
+.spacer{ flex:1 }
+
+/* =========================
+   4) Header
+   ========================= */
 header{
   display:flex; gap:10px; align-items:center; padding:14px 16px;
   position:sticky; top:0; z-index:5;
-  backdrop-filter: blur(10px); background: color-mix(in srgb, #000 8%, transparent);
+  backdrop-filter: blur(10px);
+  background: color-mix(in srgb, #000 8%, transparent);
   border-bottom:1px solid color-mix(in srgb, var(--border) 40%, transparent);
 }
 .brand{ font-weight:800; letter-spacing:.2px }
-.spacer{flex:1}
+
+/* =========================
+   5) Botones y tarjetas
+   ========================= */
 .btn, a.btn{
   padding:10px 14px; border-radius:12px;
   border:1px solid color-mix(in srgb, var(--primary) 30%, transparent);
   background:linear-gradient(180deg, var(--primary), var(--primary-600));
   color:#fff; text-decoration:none; font-weight:700; cursor:pointer;
-  box-shadow:var(--shadow-soft); transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
+  box-shadow:var(--shadow-soft);
+  transition: transform .15s ease, box-shadow .2s ease, filter .2s ease;
 }
 .btn:hover{ transform:translateY(-1px); filter:brightness(1.03); box-shadow:var(--shadow) }
 .btn.ghost{ background:transparent; color:inherit }
@@ -46,11 +75,10 @@ header{
   background:var(--card); border:1px solid var(--border);
   border-radius:16px; padding:16px; box-shadow:var(--shadow);
 }
-.grid{ display:grid; gap:16px }
-.grid.cards{ grid-template-columns: repeat(auto-fill,minmax(280px,1fr)); }
-h1{ margin:.4rem 0 1rem; font-size: clamp(24px, 4.5vw, 36px) }
-h2{ margin:0 0 12px }
-.muted{ color:var(--muted) }
+
+/* =========================
+   6) Formularios
+   ========================= */
 .field{ display:grid; gap:6px; margin:10px 0 }
 label{ font-size:13px; color:var(--muted) }
 input, textarea, select{
@@ -60,17 +88,127 @@ input, textarea, select{
 input:focus, textarea:focus, select:focus{
   border-color:var(--primary); box-shadow:0 0 0 4px var(--ring);
 }
+
+/* =========================
+   7) Tablas
+   ========================= */
 .tableWrap{ overflow:auto; border-radius:12px; border:1px solid var(--border) }
 table{ width:100%; border-collapse:collapse; min-width:820px }
 th, td{ padding:12px; border-bottom:1px solid color-mix(in srgb, var(--border) 50%, transparent) }
 thead th{ position:sticky; top:0; background: color-mix(in srgb, var(--card) 92%, transparent) }
 tbody tr:nth-child(odd){ background: var(--stripe) }
-.msg{ margin-top:8px; color:var(--muted) } .msg.err{ color:var(--danger) }
-.status{ padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); display:inline-block }
+
+/* =========================
+   8) Mensajes y estados
+   ========================= */
+.msg{ margin-top:8px; color:var(--muted) }
+.msg.err{ color:var(--danger) }
+.status{
+  padding:4px 8px; border-radius:999px; font-size:12px;
+  border:1px solid var(--border); display:inline-block;
+}
 .status.Pendiente{ background:color-mix(in srgb, var(--warn) 12%, transparent) }
 .status.Revisando{ background:color-mix(in srgb, var(--primary) 12%, transparent) }
 .status.Rechazado{ background:color-mix(in srgb, var(--danger) 12%, transparent) }
 .status.Aceptado{ background:color-mix(in srgb, var(--ok) 12%, transparent) }
+
+/* =========================
+   9) Hero (inicio)
+   ========================= */
+.hero{
+  display:grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap:18px;
+  align-items:center;
+  margin-top: 18px;
+}
+.hero-copy h1{
+  margin:.2rem 0 .6rem;
+  font-size: clamp(28px, 5vw, 44px);
+  line-height:1.1;
+}
+.grad-text{
+  background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--ok) 70%, var(--primary)));
+  -webkit-background-clip:text; background-clip:text;
+  color: transparent;
+  filter: drop-shadow(0 6px 24px color-mix(in srgb, var(--ring) 60%, transparent));
+}
+.hero-cta{ display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+.hero-stats{
+  margin-top:16px;
+  display:grid; gap:12px;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+}
+.stat{ text-align:center; padding:16px; }
+.stat-num{ font-size: clamp(22px, 4.3vw, 30px); font-weight:800; }
+.hero-art{ position:relative; overflow:hidden; min-height: 260px; }
+.hero-list{ margin:0 0 6px 18px; }
+.hero-illus{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+
+/* =========================
+   10) Footer
+   ========================= */
+.site-footer{
+  margin-top: 40px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  background: color-mix(in srgb, #000 8%, transparent);
+  backdrop-filter: blur(10px);
+}
+.footer-grid{
+  display: grid;
+  gap: 18px;
+  padding: 28px 16px;
+  grid-template-columns: repeat(12, 1fr);
+  align-items: start;
+}
+/* 3 columnas en desktop, 2 en tablet, 1 en móvil */
+.foot-brand{ grid-column: span 5; }
+.foot-links{ grid-column: span 3; }
+.foot-contact{ grid-column: span 4; }
+.foot-brand .brand{ margin: 0 0 6px; }
+.foot-brand p{ margin: 6px 0 0; max-width: 520px; }
+.foot-links h4,
+.foot-contact h4{
+  margin: 0 0 10px;
+  font-size: 14px;
+  letter-spacing:.2px;
+  color: var(--muted);
+  text-transform: uppercase;
+}
+.foot-links ul,
+.foot-contact ul{
+  list-style: none;
+  padding: 0; margin: 0;
+  display: grid; gap: 8px;
+}
+.site-footer a{
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed color-mix(in srgb, var(--border) 60%, transparent);
+  padding-bottom: 2px;
+}
+.site-footer a:hover{
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+/* Franja legal inferior */
+.footer-legal{
+  border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  background: color-mix(in srgb, var(--card) 70%, transparent);
+}
+.legal-row{
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px 18px;
+}
+.legal-row small{ color: var(--muted) }
+.legal-links{ display:flex; gap:14px; flex-wrap:wrap }
+
+/* =========================
+   11) Animaciones
+   ========================= */
 .skeleton{
   height:18px; border-radius:8px;
   background: linear-gradient(90deg,
@@ -80,4 +218,108 @@ tbody tr:nth-child(odd){ background: var(--stripe) }
   background-size:200% 100%; animation: shimmer 1.2s infinite linear;
 }
 @keyframes shimmer{ from{background-position:200% 0} to{background-position:-200% 0} }
-@media (prefers-reduced-motion: reduce){ *{animation:none!important; transition:none!important} }
+
+/* Blobs animados (sutiles) */
+.blob{
+  position:absolute; width:180px; height:180px;
+  border-radius:50%;
+  filter: blur(18px);
+  opacity:.65;
+  animation: float 10s ease-in-out infinite;
+  background:
+    radial-gradient(60% 60% at 50% 50%, color-mix(in srgb, var(--primary) 65%, transparent), transparent 70%),
+    radial-gradient(60% 60% at 40% 40%, color-mix(in srgb, var(--ok) 45%, transparent), transparent 70%);
+  box-shadow: var(--shadow-soft);
+}
+.blob.b1{ top:-20px; left:-30px; animation-delay: 0s; }
+.blob.b2{ top: 40%; right:-40px; animation-delay: 1.6s; }
+.blob.b3{ bottom:-30px; left:30%; animation-delay: 3.2s; }
+@keyframes float{
+  0%   { transform: translateY(0) scale(1); }
+  50%  { transform: translateY(-14px) scale(1.04); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* =========================
+   12) Media queries
+   ========================= */
+/* Accesibilidad: reduce motion */
+@media (prefers-reduced-motion: reduce){
+  *{ animation:none!important; transition:none!important }
+  .blob{ animation:none!important; }
+}
+/* Responsivo hero + features */
+@media (max-width: 980px){
+  .hero{ grid-template-columns: 1fr; }
+  .hero-stats{ grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px){
+  .hero-stats{ grid-template-columns: 1fr 1fr; }
+  .features{ grid-template-columns: 1fr; }
+}
+/* Responsivo footer */
+@media (max-width: 980px){
+  .foot-brand{ grid-column: 1 / -1; }
+  .foot-links{ grid-column: span 6; }
+  .foot-contact{ grid-column: span 6; }
+}
+@media (max-width: 640px){
+  .footer-grid{ grid-template-columns: 1fr; }
+  .foot-links, .foot-contact{ grid-column: 1 / -1; }
+  .legal-row{ flex-direction: column; align-items: flex-start; gap:6px; }
+}
+
+/* =========================
+   13) Fix: evitar choque con footer y desbordes en tarjetas
+   ========================= */
+
+/* Deja colchón antes del footer en páginas con mucho contenido */
+.page-main{
+  padding-bottom: 96px;
+}
+
+/* Evita desbordes dentro de tarjetas (textos/URLs largos) */
+.card{
+  overflow: hidden;          /* no tapa otros elementos */
+  display: block;            /* asegura bloque consistente */
+}
+.card p{
+  overflow-wrap: anywhere;   /* corta palabras largas */
+  margin-bottom: 0.6rem;
+}
+
+/* Grid estable en “Mis postulaciones” */
+.section-apps .cards{
+  align-items: start;
+  min-height: 0;
+}
+
+/* Asegura que el footer nunca quede cubierto visualmente */
+.site-footer{
+  position: relative;
+  z-index: 1;
+}
+
+/* =========================
+   14) Fix extra home (desbordes hero/blobs)
+   ========================= */
+
+/* Evitar scroll horizontal global cuando hay blobs o efectos en hero */
+html, body{
+  overflow-x: hidden;
+}
+
+/* Contener cualquier derrame del hero (blobs animados, etc.) */
+.hero{
+  overflow: hidden;
+}
+
+/* Aislar la capa del arte para que sombras/filtros no afecten al resto */
+.hero-art{
+  isolation: isolate;
+}
+
+/* Asegurar que el contenedor de ilustraciones no desborde */
+.hero-illus{
+  overflow: hidden;
+}
