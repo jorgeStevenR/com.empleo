@@ -36,9 +36,9 @@ public class UserController {
 
         User user = userService.getUserByEmail(email);
         if (user != null && user.getPassword().equals(password)) {
-            return "✅ Login exitoso para: " + user.getName();
+            return "Login exitoso para: " + user.getName();
         } else {
-            return "❌ Credenciales incorrectas";
+            return "Credenciales incorrectas";
         }
     }
 
