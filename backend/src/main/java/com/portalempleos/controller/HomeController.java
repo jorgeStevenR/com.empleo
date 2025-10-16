@@ -1,27 +1,30 @@
 package com.portalempleos.controller;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 public class HomeController {
 
-    // Verificación rápida del backend
+    // Redirige raíz y /ping a index.html
     @GetMapping({"/", "/ping"})
-    public String ping() {
-        return "Backend OK";
+    public String home() {
+        return "redirect:/index.html";
     }
 
+    // Redirige /job -> job.html
     @GetMapping("/job")
     public String jobs() {
         return "redirect:/job.html";
     }
 
+    // Redirige /login -> login.html
     @GetMapping("/login")
     public String login() {
         return "redirect:/login.html";
     }
 
+    // Redirige /register -> register.html
     @GetMapping("/register")
     public String register() {
         return "redirect:/register.html";
