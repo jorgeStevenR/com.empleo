@@ -4,15 +4,15 @@ import com.portalempleos.model.Company;
 import com.portalempleos.model.Job;
 import com.portalempleos.repository.CompanyRepository;
 import com.portalempleos.repository.JobRepository;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/jobs")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class JobController {
 
     private final JobRepository jobRepository;
@@ -23,76 +23,74 @@ public class JobController {
         this.companyRepository = companyRepository;
     }
 
+    // ===== Helpers =====
+    private static String ns(String s){ return s == null ? "" : s; }
+
+    private Map<String,Object> toDto(Job j){
+        Company c = j.getCompany();
+        return Map.of(
+            "id", j.getIdJob(),
+            "id_job", j.getIdJob(),
+            "title", ns(j.getTitle()),
+            "description", ns(j.getDescription()),
+            "location", ns(j.getLocation()),
+            "createdAt", j.getCreatedAt() == null ? null : j.getCreatedAt().toString(),
+            "companyDisplay", c != null ? ns(c.getName()) : "",
+            "company", c != null ? ns(c.getName()) : "",
+            "companyId", c != null ? c.getIdCompany() : null,
+            "companyNit", c != null ? c.getNit() : null
+        );
+    }
+
+    // ===== Público: listar (con q opcional)
     @GetMapping
-    public List<Job> getAllJobs() {
-        return jobRepository.findAll();
+    public List<Map<String,Object>> list(@RequestParam(name="q", required=false) String q){
+        final String term = q == null ? "" : q.trim().toLowerCase();
+        List<Job> base = jobRepository.findAllByOrderByCreatedAtDesc();
+        if (StringUtils.hasText(term)) {
+            base = base.stream().filter(j -> {
+                String title = ns(j.getTitle()).toLowerCase();
+                String comp  = j.getCompany() != null ? ns(j.getCompany().getName()).toLowerCase() : "";
+                return title.contains(term) || comp.contains(term);
+            }).collect(Collectors.toList());
+        }
+        return base.stream().map(this::toDto).collect(Collectors.toList());
     }
 
-    @GetMapping("/{id}")
-    public Optional<Job> getOne(@PathVariable Long id) {
-        return jobRepository.findById(id);
-    }
-
+    // ===== Crear empleo
     @PostMapping
-    public Job createJob(@RequestBody Map<String, Object> body) {
+    public Map<String,Object> createJob(@RequestBody Map<String,Object> body){
         Job j = new Job();
-        j.setTitle((String) body.get("title"));
-        j.setDescription((String) body.get("description"));
-        j.setLocation((String) body.get("location"));
+        j.setTitle((String) body.getOrDefault("title",""));
+        j.setDescription((String) body.getOrDefault("description",""));
+        j.setLocation((String) body.getOrDefault("location",""));
 
-        // legacy texto (visible para el público)
-        if (body.containsKey("company")) {
-            j.setCompany((String) body.get("company"));
-        }
-
-        // Preferir companyNit
+        // Vincular empresa por NIT o por ID
         Object nitObj = body.get("companyNit");
-        if (nitObj instanceof String nit && !nit.isBlank()) {
-            companyRepository.findByNit(nit).ifPresent(j::setCompanyEntity);
-        } else {
-            // compatible: companyId
-            Object idObj = body.get("companyId");
-            if (idObj instanceof Number num) {
-                companyRepository.findById(num.longValue()).ifPresent(j::setCompanyEntity);
-            }
-        }
-        return jobRepository.save(j);
-    }
-
-    @PutMapping("/{id}")
-    public Job updateJob(@PathVariable Long id, @RequestBody Map<String, Object> body) {
-        Job j = jobRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Job not found: " + id));
-
-        if (body.containsKey("title")) j.setTitle((String) body.get("title"));
-        if (body.containsKey("description")) j.setDescription((String) body.get("description"));
-        if (body.containsKey("location")) j.setLocation((String) body.get("location"));
-        if (body.containsKey("company")) j.setCompany((String) body.get("company")); // legacy
-
-        // Preferir NIT
-        Object nitObj = body.get("companyNit");
-        if (nitObj instanceof String nit && !nit.isBlank()) {
-            Company c = companyRepository.findByNit(nit).orElse(null);
-            j.setCompanyEntity(c);
+        if (nitObj instanceof String nit && StringUtils.hasText(nit)) {
+            companyRepository.findByNit(nit).ifPresent(j::setCompany);
         } else {
             Object idObj = body.get("companyId");
             if (idObj instanceof Number num) {
-                Company c = companyRepository.findById(num.longValue()).orElse(null);
-                j.setCompanyEntity(c);
+                companyRepository.findById(num.longValue()).ifPresent(j::setCompany);
             }
         }
 
-        return jobRepository.save(j);
+        Job saved = jobRepository.save(j);
+        return toDto(saved);
     }
 
-    @DeleteMapping("/{id}")
-    public String deleteJob(@PathVariable Long id) {
-        jobRepository.deleteById(id);
-        return "Job deleted";
-    }
-
+    // ===== Empleos por empresa
     @GetMapping("/by-company/{companyId}")
-    public List<Job> byCompany(@PathVariable Long companyId) {
-        return jobRepository.findByCompanyEntity_IdCompany(companyId);
+    public List<Map<String,Object>> byCompany(@PathVariable Long companyId){
+        return jobRepository.findByCompany_IdCompany(companyId)
+                .stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    // ===== Eliminar empleo
+    @DeleteMapping("/{id}")
+    public Map<String,Object> deleteJob(@PathVariable Long id){
+        jobRepository.deleteById(id);
+        return Map.of("ok", true, "message", "Job deleted", "id", id);
     }
 }

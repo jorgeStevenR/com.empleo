@@ -6,84 +6,53 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "applications")
 public class Application {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id_application;
+    @Column(name = "id_application")
+    private Long idApplication;
 
-    @ManyToOne
-    @JoinColumn(name = "id_user")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_user", nullable = false)
     private User user;
 
-    @ManyToOne
-    @JoinColumn(name = "id_job")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_job", nullable = false)
     private Job job;
 
-    private String cover_letter;
-    private String url_img;
+    @Column(name = "cover_letter")
+    private String coverLetter;
+
+    @Column(name = "url_img")
+    private String urlImg;
 
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    private LocalDateTime applied_at;
+    @Column(name = "applied_at")
+    private LocalDateTime appliedAt;
 
-    public enum Status {
-        Pendiente, Revisando, Rechazado, Aceptado
+    public enum Status { Pendiente, Revisando, Rechazado, Aceptado }
+
+    @PrePersist
+    public void prePersist() {
+        if (appliedAt == null) appliedAt = LocalDateTime.now();
+        if (status == null) status = Status.Pendiente;
     }
 
-    // Getters y setters
-    public Long getId_application() {
-        return id_application;
-    }
-
-    public void setId_application(Long id_application) {
-        this.id_application = id_application;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public Job getJob() {
-        return job;
-    }
-
-    public void setJob(Job job) {
-        this.job = job;
-    }
-
-    public String getCover_letter() {
-        return cover_letter;
-    }
-
-    public void setCover_letter(String cover_letter) {
-        this.cover_letter = cover_letter;
-    }
-
-    public String getUrl_img() {
-        return url_img;
-    }
-
-    public void setUrl_img(String url_img) {
-        this.url_img = url_img;
-    }
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
-    }
-
-    public LocalDateTime getApplied_at() {
-        return applied_at;
-    }
-
-    public void setApplied_at(LocalDateTime applied_at) {
-        this.applied_at = applied_at;
-    }
+    // Getters/Setters
+    public Long getIdApplication() { return idApplication; }
+    public void setIdApplication(Long idApplication) { this.idApplication = idApplication; }
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
+    public Job getJob() { return job; }
+    public void setJob(Job job) { this.job = job; }
+    public String getCoverLetter() { return coverLetter; }
+    public void setCoverLetter(String coverLetter) { this.coverLetter = coverLetter; }
+    public String getUrlImg() { return urlImg; }
+    public void setUrlImg(String urlImg) { this.urlImg = urlImg; }
+    public Status getStatus() { return status; }
+    public void setStatus(Status status) { this.status = status; }
+    public LocalDateTime getAppliedAt() { return appliedAt; }
+    public void setAppliedAt(LocalDateTime appliedAt) { this.appliedAt = appliedAt; }
 }
