@@ -10,6 +10,7 @@
          border:1px solid var(--border); padding:6px; border-radius:12px; width:max-content}
     .seg button{border:none;background:transparent;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:700}
     .seg button.active{background:linear-gradient(180deg,var(--primary),var(--primary-600));color:#fff}
+    .msg.err{color:#b91c1c}
   </style>
 </head>
 <body>
@@ -29,14 +30,38 @@
       </div>
 
       <div class="grid" style="grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
-        <div class="field" style="grid-column:1/-1"><label>Nombre</label><input id="name" required></div>
-        <div class="field"><label>Email</label><input id="email" type="email" required></div>
-        <div class="field"><label>Contraseña</label><input id="password" type="password" required></div>
-        <input id="role" type="hidden" value="USER">
-        <div id="companyWrap" class="field" style="display:none">
-          <label>NIT de empresa (opcional)</label>
+        <div class="field" style="grid-column:1/-1">
+          <label id="lblName">Nombre</label><input id="name" required>
+        </div>
+
+        <div class="field">
+          <label id="lblEmail">Email</label><input id="email" type="email">
+        </div>
+
+        <div class="field">
+          <label>Contraseña</label><input id="password" type="password" required>
+        </div>
+
+        <!-- Visible sólo para EMPRESA -->
+        <div id="companyNitWrap" class="field" style="display:none">
+          <label>NIT de empresa</label>
           <input id="companyNit" placeholder="Ej: 901234567-8">
         </div>
+
+        <div id="websiteWrap" class="field" style="display:none">
+          <label>Sitio web (opcional)</label>
+          <input id="website" placeholder="https://...">
+        </div>
+        <div id="locationWrap" class="field" style="display:none">
+          <label>Ubicación (opcional)</label>
+          <input id="location">
+        </div>
+        <div id="descWrap" class="field" style="grid-column:1/-1;display:none">
+          <label>Descripción (opcional)</label>
+          <textarea id="description" rows="3"></textarea>
+        </div>
+
+        <input id="role" type="hidden" value="USER">
       </div>
 
       <div style="display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap">
@@ -50,14 +75,31 @@
   <script src="/assets/app.js"></script>
   <script>
     const { qs } = App;
-    const segUser=qs('#segUser'), segEmp=qs('#segEmp'), role=qs('#role'), companyWrap=qs('#companyWrap');
+    const segUser=qs('#segUser'), segEmp=qs('#segEmp'), role=qs('#role');
+    const nameEl=qs('#name'), emailEl=qs('#email'), passEl=qs('#password');
+    const nitWrap=qs('#companyNitWrap'), nitEl=qs('#companyNit');
+    const websiteWrap=qs('#websiteWrap'), websiteEl=qs('#website');
+    const locationWrap=qs('#locationWrap'), locationEl=qs('#location');
+    const descWrap=qs('#descWrap'), descEl=qs('#description');
+    const lblName=qs('#lblName'), lblEmail=qs('#lblEmail');
 
     function setMode(r){
       role.value = r;
       const emp = r === 'EMPLOYER';
-      companyWrap.style.display = emp ? 'block' : 'none';
       segUser.classList.toggle('active', !emp);
       segEmp.classList.toggle('active', emp);
+
+      nitWrap.style.display = emp ? 'block' : 'none';
+      websiteWrap.style.display = emp ? 'block' : 'none';
+      locationWrap.style.display = emp ? 'block' : 'none';
+      descWrap.style.display = emp ? 'block' : 'none';
+
+      lblName.textContent = emp ? 'Nombre de la empresa' : 'Nombre';
+      lblEmail.textContent = emp ? 'Email de la empresa (opcional)' : 'Email';
+
+      // Requeridos
+      emailEl.required = !emp;   // candidato: email requerido, empresa: opcional
+      nitEl.required = emp;      // empresa: NIT requerido
     }
 
     const pRole = new URL(location.href).searchParams.get('role');
@@ -68,22 +110,46 @@
 
     const form=qs('#form'), msg=qs('#msg');
     form.addEventListener('submit', async (e)=>{
-      e.preventDefault(); msg.textContent='Enviando…';
-      const payload={
-        name:qs('#name').value.trim(),
-        email:qs('#email').value.trim(),
-        password:qs('#password').value,
-        role:qs('#role').value
-      };
-      const nit=qs('#companyNit').value.trim(); if(nit) payload.companyNit = nit;
+      e.preventDefault(); msg.textContent='Enviando…'; msg.classList.remove('err');
 
+      const isEmp = role.value === 'EMPLOYER';
       try{
-        const res = await fetch('/api/users/register', {
+        let url, payload;
+
+        if (isEmp){
+          url = '/api/companies/register';
+          payload = {
+            nit: nitEl.value.trim(),
+            name: nameEl.value.trim(),
+            email: emailEl.value.trim(),
+            password: passEl.value,
+            website: websiteEl.value.trim(),
+            location: locationEl.value.trim(),
+            description: descEl.value.trim()
+          };
+          if (!payload.nit || !payload.password || !payload.name){
+            throw new Error('NIT, nombre y contraseña son obligatorios para empresa.');
+          }
+        } else {
+          url = '/api/users/register';
+          payload = {
+            name: nameEl.value.trim(),
+            email: emailEl.value.trim(),
+            password: passEl.value,
+            role: 'USER'
+          };
+          if (!payload.email || !payload.password){
+            throw new Error('Email y contraseña son obligatorios.');
+          }
+        }
+
+        const res = await fetch(url, {
           method:'POST', headers:{'Content-Type':'application/json'},
           body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (!res.ok || data.ok !== true) throw new Error(data?.message || ('HTTP '+res.status));
+
         msg.textContent='✅ Cuenta creada. Te llevamos al login…';
         setTimeout(()=> location.href='/login.html', 700);
       }catch(err){

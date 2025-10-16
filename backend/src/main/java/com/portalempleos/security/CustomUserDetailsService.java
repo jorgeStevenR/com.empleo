@@ -1,6 +1,7 @@
 package com.portalempleos.security;
 
 import com.portalempleos.model.User;
+import com.portalempleos.model.Company;
 import com.portalempleos.repository.UserRepository;
 import com.portalempleos.repository.CompanyRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,19 +22,26 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrNit) throws UsernameNotFoundException {
-        // Buscar usuario por email
+        // 1) Usuario por email
         User u = userRepository.findByEmail(usernameOrNit).orElse(null);
-
-        if (u == null) {
-            throw new UsernameNotFoundException("Usuario no encontrado: " + usernameOrNit);
+        if (u != null) {
+            String role = (u.getRole() == null || u.getRole().isBlank()) ? "USER" : u.getRole().toUpperCase();
+            return org.springframework.security.core.userdetails.User
+                    .withUsername(u.getEmail())
+                    .password(u.getPassword() == null ? "{noop}" : u.getPassword())
+                    .roles(role)
+                    .build();
         }
 
-        String role = (u.getRole() == null || u.getRole().isBlank()) ? "USER" : u.getRole();
+        // 2) Empresa por NIT o Email
+        Company c = companyRepository.findByNit(usernameOrNit)
+                .or(() -> companyRepository.findByEmail(usernameOrNit))
+                .orElseThrow(() -> new UsernameNotFoundException("Usuario/Empresa no encontrado: " + usernameOrNit));
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(u.getEmail())
-                .password(u.getPassword() == null ? "{noop}" : u.getPassword())
-                .roles(role)
+                .withUsername(c.getNit()) // o email si prefieres
+                .password(c.getPassword() == null ? "{noop}" : c.getPassword())
+                .roles("EMPLOYER")
                 .build();
     }
 }

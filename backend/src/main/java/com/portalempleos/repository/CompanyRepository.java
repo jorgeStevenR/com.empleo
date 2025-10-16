@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface CompanyRepository extends JpaRepository<Company, Long> {
     Optional<Company> findByNit(String nit);
+    Optional<Company> findByEmail(String email);   // <-- necesario para login por email
 }

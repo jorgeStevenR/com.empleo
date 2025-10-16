@@ -82,6 +82,7 @@ public class SecurityConfig {
 
                 // ===== AUTH PÚBLICA =====
                 .requestMatchers(HttpMethod.POST, "/api/users/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/companies/login").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
 
                 // ===== REGISTRO PÚBLICO =====
