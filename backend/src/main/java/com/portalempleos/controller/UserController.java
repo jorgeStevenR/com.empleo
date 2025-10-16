@@ -1,14 +1,15 @@
 package com.portalempleos.controller;
 
-import com.portalempleos.model.Company;
 import com.portalempleos.model.User;
-import com.portalempleos.repository.CompanyRepository;
-import com.portalempleos.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.portalempleos.repository.UserRepository;
+import com.portalempleos.security.JwtUtil;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -16,97 +17,96 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class UserController {
 
-    @Autowired
-    private UserService userService;
+    private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
-    private final CompanyRepository companyRepository;
-
-    public UserController(CompanyRepository companyRepository) {
-        this.companyRepository = companyRepository;
+    public UserController(UserRepository userRepository,
+                          PasswordEncoder passwordEncoder,
+                          JwtUtil jwtUtil) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
     }
 
-    private Map<String, Object> ok(Object user, String token) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("ok", true);
-        m.put("user", user);
-        m.put("token", token);
-        return m;
-    }
+    // ======= REGISTRO USUARIO (PÚBLICO) =======
+    @PostMapping({"", "/register"})
+    public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
+        String name = safe(body.get("name"));
+        String email = safe(body.get("email")).toLowerCase();
+        String rawPassword = safe(body.get("password"));
+        String role = StringUtils.hasText(safe(body.get("role"))) ? safe(body.get("role")).toUpperCase() : "USER";
 
-    private Map<String, Object> err(String msg) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("ok", false);
-        m.put("message", msg);
-        return m;
-    }
-
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    /**
-     * Registro:
-     * {
-     *   "name":"...", "email":"...", "password":"...",
-     *   "role":"USER|EMPLOYER|ADMIN",
-     *   "companyNit":"901234567-8"   // preferido
-     *   // o "companyId": 1          // compatible
-     * }
-     */
-    @PostMapping("/register")
-    public Object registerUser(@RequestBody Map<String, Object> body) {
-        try {
-            String name = (String) body.get("name");
-            String email = (String) body.get("email");
-            String password = (String) body.get("password");
-            String role = (String) body.getOrDefault("role", "USER");
-
-            if (email == null || password == null) return err("Email y password son obligatorios");
-
-            User u = new User();
-            u.setName(name);
-            u.setEmail(email);
-            u.setPassword(password); // TODO: hashear en prod
-            u.setRole(role == null || role.isBlank() ? "USER" : role);
-
-            // Preferir NIT
-            Object nitObj = body.get("companyNit");
-            if (nitObj instanceof String nit && !nit.isBlank()) {
-                companyRepository.findByNit(nit).ifPresent(u::setCompanyEntity);
-            } else {
-                Object companyIdObj = body.get("companyId");
-                if (companyIdObj instanceof Number num) {
-                    companyRepository.findById(num.longValue()).ifPresent(u::setCompanyEntity);
-                }
-            }
-
-            User saved = userService.registerUser(u);
-            return ok(saved, null);
-        } catch (Exception e) {
-            return err("Error registrando: " + e.getMessage());
+        if (!StringUtils.hasText(email) || !StringUtils.hasText(rawPassword)) {
+            return build(false, "Email y contraseña son obligatorios", null, null, HttpStatus.BAD_REQUEST);
         }
+        if (userRepository.findByEmail(email).isPresent()) {
+            return build(false, "El email ya está registrado", null, null, HttpStatus.CONFLICT);
+        }
+
+        User u = new User();
+        u.setName(name);
+        u.setEmail(email);
+        // HASH AQUÍ
+        u.setPassword(passwordEncoder.encode(rawPassword));
+        u.setRole(role);
+
+        User saved = userRepository.save(u);
+
+        Map<String, Object> userDto = sanitizeUser(saved);
+        // token opcional directo al registrar
+        String token = jwtUtil.generateToken(
+                saved.getEmail(),
+                saved.getRole(),
+                Map.of("uid", saved.getIdUser())
+        );
+
+        return build(true, "Usuario creado", userDto, token, HttpStatus.CREATED);
     }
 
+    // ======= LOGIN (PÚBLICO) =======
     @PostMapping("/login")
-    public Object loginUser(@RequestBody Map<String, String> credentials) {
-        try {
-            String email = credentials.get("email");
-            String password = credentials.get("password");
+    public ResponseEntity<?> login(@RequestBody Map<String, Object> body) {
+        String email = safe(body.get("email")).toLowerCase();
+        String raw = safe(body.get("password"));
 
-            User user = userService.getUserByEmail(email);
-            if (user != null && user.getPassword().equals(password)) {
-                return ok(user, null);
-            }
-            return err("Credenciales incorrectas");
-        } catch (Exception e) {
-            return err("Error en login: " + e.getMessage());
+        var opt = userRepository.findByEmail(email);
+        if (opt.isEmpty()) {
+            return build(false, "Credenciales inválidas", null, null, HttpStatus.UNAUTHORIZED);
         }
+        User u = opt.get();
+        if (!passwordEncoder.matches(raw, u.getPassword())) {
+            return build(false, "Credenciales inválidas", null, null, HttpStatus.UNAUTHORIZED);
+        }
+
+        String token = jwtUtil.generateToken(
+                u.getEmail(),
+                u.getRole(),
+                Map.of("uid", u.getIdUser())
+        );
+
+        return build(true, "Login ok", sanitizeUser(u), token, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public Map<String, Object> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ok(Map.of("deletedId", id), null);
+    // ===== Helpers =====
+    private static String safe(Object o) { return o == null ? "" : String.valueOf(o).trim(); }
+
+    private static Map<String, Object> sanitizeUser(User u) {
+        Map<String, Object> m = new HashMap<>();
+        m.put("id", u.getIdUser());
+        m.put("idUser", u.getIdUser()); // compat
+        m.put("name", u.getName());
+        m.put("email", u.getEmail());
+        m.put("role", u.getRole());
+        return m;
+    }
+
+    private static ResponseEntity<Map<String, Object>> build(boolean ok, String msg, Object user, String token, HttpStatus status) {
+        Map<String, Object> res = new HashMap<>();
+        res.put("ok", ok);
+        res.put("message", msg);
+        if (user != null) res.put("user", user);
+        if (token != null) res.put("token", token);
+        return ResponseEntity.status(status).body(res);
     }
 }

@@ -1,77 +1,64 @@
 package com.portalempleos.controller;
 
 import com.portalempleos.model.Company;
-import com.portalempleos.model.Job;
-import com.portalempleos.model.Application;
 import com.portalempleos.repository.CompanyRepository;
-import com.portalempleos.repository.JobRepository;
-import com.portalempleos.repository.ApplicationRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/companies")
-@CrossOrigin("*")
+@CrossOrigin(origins = "*")
 public class CompanyController {
 
     private final CompanyRepository companyRepository;
-    private final JobRepository jobRepository;
-    private final ApplicationRepository applicationRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public CompanyController(CompanyRepository companyRepository,
-                             JobRepository jobRepository,
-                             ApplicationRepository applicationRepository) {
+    public CompanyController(CompanyRepository companyRepository, PasswordEncoder passwordEncoder) {
         this.companyRepository = companyRepository;
-        this.jobRepository = jobRepository;
-        this.applicationRepository = applicationRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // CRUD básico
-    @GetMapping
-    public List<Company> getAll() {
-        return companyRepository.findAll();
+    @PostMapping({"", "/register"})
+    public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
+        String nit = safe(body.get("nit"));
+        String name = safe(body.get("name"));
+        String raw = safe(body.get("password"));
+
+        if (!StringUtils.hasText(nit) || !StringUtils.hasText(raw)) {
+            return resp(false, "NIT y contraseña son obligatorios", null, HttpStatus.BAD_REQUEST);
+        }
+        if (companyRepository.findByNit(nit).isPresent()) {
+            return resp(false, "La empresa ya existe", null, HttpStatus.CONFLICT);
+        }
+
+        Company c = new Company();
+        c.setNit(nit);
+        c.setName(name);
+        // HASH AQUÍ
+        c.setPassword(passwordEncoder.encode(raw));
+
+        Company saved = companyRepository.save(c);
+        Map<String, Object> dto = new HashMap<>();
+        dto.put("id", saved.getIdCompany());
+        dto.put("nit", saved.getNit());
+        dto.put("name", saved.getName());
+
+        return resp(true, "Empresa creada", dto, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public Optional<Company> getOne(@PathVariable Long id) {
-        return companyRepository.findById(id);
-    }
+    private static String safe(Object o){ return o==null? "": String.valueOf(o).trim(); }
 
-    @PostMapping
-    public Company create(@RequestBody Company c) {
-        return companyRepository.save(c);
-    }
-
-    @PutMapping("/{id}")
-    public Company update(@PathVariable Long id, @RequestBody Company body) {
-        return companyRepository.findById(id).map(c -> {
-            c.setName(body.getName());
-            c.setWebsite(body.getWebsite());
-            c.setDescription(body.getDescription());
-            c.setLocation(body.getLocation());
-            return companyRepository.save(c);
-        }).orElseThrow(() -> new RuntimeException("Company not found: " + id));
-    }
-
-    @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
-        companyRepository.deleteById(id);
-        return "Company deleted";
-    }
-
-    // --- Extras útiles ---
-
-    // Empleos de una empresa
-    @GetMapping("/{id}/jobs")
-    public List<Job> jobsByCompany(@PathVariable Long id) {
-        return jobRepository.findByCompanyEntity_IdCompany(id);
-    }
-
-    // Postulaciones de una empresa (vía empleo)
-    @GetMapping("/{id}/applications")
-    public List<Application> applicationsByCompany(@PathVariable Long id) {
-        return applicationRepository.findByJob_CompanyEntity_IdCompany(id);
+    private static ResponseEntity<Map<String,Object>> resp(boolean ok, String msg, Object company, HttpStatus st){
+        Map<String,Object> m = new HashMap<>();
+        m.put("ok", ok);
+        m.put("message", msg);
+        if (company!=null) m.put("company", company);
+        return ResponseEntity.status(st).body(m);
     }
 }

@@ -4,6 +4,7 @@ import com.portalempleos.model.User;
 import com.portalempleos.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -23,18 +24,13 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // Buscar usuario por email (para login)
-    public User getUserByEmail(String email) {
+    // Buscar por email
+    public Optional<User> findByEmail(String email) {
         return userRepository.findByEmail(email);
     }
 
     // Buscar por ID
-    public Optional<User> getUserById(Long id) {
+    public Optional<User> findById(Long id) {
         return userRepository.findById(id);
-    }
-
-    // Eliminar usuario
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
     }
 }
