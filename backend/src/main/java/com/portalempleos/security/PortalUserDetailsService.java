@@ -23,10 +23,11 @@ public class PortalUserDetailsService implements UserDetailsService {
         User user = userRepository.findByEmail(emailOrNit)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario no encontrado: " + emailOrNit));
 
-        String role = (user.getRole() == null || user.getRole().isBlank()) ? "USER" : user.getRole();
+        String role = (user.getRole() == null || user.getRole().isBlank()) ? "USER" : user.getRole().toUpperCase();
+        String email = (user.getEmailEntity() != null) ? user.getEmailEntity().getEmail() : emailOrNit;
 
         return org.springframework.security.core.userdetails.User
-                .withUsername(user.getEmail())
+                .withUsername(email)
                 .password(user.getPassword() == null ? "{noop}" : user.getPassword())
                 .roles(role)
                 .build();

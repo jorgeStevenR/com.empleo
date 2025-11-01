@@ -1,7 +1,8 @@
 package com.portalempleos.controller;
 
 import com.portalempleos.model.User;
-import com.portalempleos.repository.UserRepository;
+import com.portalempleos.service.EmailService;
+import com.portalempleos.service.UserService;
 import com.portalempleos.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,19 +18,22 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
-    public UserController(UserRepository userRepository,
+    public UserController(UserService userService,
+                          EmailService emailService,
                           PasswordEncoder passwordEncoder,
                           JwtUtil jwtUtil) {
-        this.userRepository = userRepository;
+        this.userService = userService;
+        this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
     }
 
-    // ======= REGISTRO USUARIO (PÚBLICO) =======
+    // ======= REGISTER USER =======
     @PostMapping({"", "/register"})
     public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
         String name = safe(body.get("name"));
@@ -38,54 +42,42 @@ public class UserController {
         String role = StringUtils.hasText(safe(body.get("role"))) ? safe(body.get("role")).toUpperCase() : "USER";
 
         if (!StringUtils.hasText(email) || !StringUtils.hasText(rawPassword)) {
-            return build(false, "Email y contraseña son obligatorios", null, null, HttpStatus.BAD_REQUEST);
+            return build(false, "Email and password are required", null, null, HttpStatus.BAD_REQUEST);
         }
-        if (userRepository.findByEmail(email).isPresent()) {
-            return build(false, "El email ya está registrado", null, null, HttpStatus.CONFLICT);
+
+        if (emailService.findByEmail(email).isPresent()) {
+            return build(false, "Email already exists", null, null, HttpStatus.CONFLICT);
         }
 
         User u = new User();
         u.setName(name);
-        u.setEmail(email);
-        // HASH AQUÍ
-        u.setPassword(passwordEncoder.encode(rawPassword));
+        u.setPassword(rawPassword);
         u.setRole(role);
 
-        User saved = userRepository.save(u);
-
+        User saved = userService.registerUser(u, email);
         Map<String, Object> userDto = sanitizeUser(saved);
-        // token opcional directo al registrar
-        String token = jwtUtil.generateToken(
-                saved.getEmail(),
-                saved.getRole(),
-                Map.of("uid", saved.getIdUser())
-        );
 
-        return build(true, "Usuario creado", userDto, token, HttpStatus.CREATED);
+        String token = jwtUtil.generateToken(email, saved.getRole(), Map.of("uid", saved.getIdUser()));
+
+        return build(true, "User registered successfully", userDto, token, HttpStatus.CREATED);
     }
 
-    // ======= LOGIN (PÚBLICO) =======
+    // ======= LOGIN =======
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, Object> body) {
         String email = safe(body.get("email")).toLowerCase();
         String raw = safe(body.get("password"));
 
-        var opt = userRepository.findByEmail(email);
-        if (opt.isEmpty()) {
-            return build(false, "Credenciales inválidas", null, null, HttpStatus.UNAUTHORIZED);
-        }
+        var opt = userService.findByEmail(email);
+        if (opt.isEmpty()) return build(false, "Invalid credentials", null, null, HttpStatus.UNAUTHORIZED);
+
         User u = opt.get();
         if (!passwordEncoder.matches(raw, u.getPassword())) {
-            return build(false, "Credenciales inválidas", null, null, HttpStatus.UNAUTHORIZED);
+            return build(false, "Invalid credentials", null, null, HttpStatus.UNAUTHORIZED);
         }
 
-        String token = jwtUtil.generateToken(
-                u.getEmail(),
-                u.getRole(),
-                Map.of("uid", u.getIdUser())
-        );
-
-        return build(true, "Login ok", sanitizeUser(u), token, HttpStatus.OK);
+        String token = jwtUtil.generateToken(email, u.getRole(), Map.of("uid", u.getIdUser()));
+        return build(true, "Login successful", sanitizeUser(u), token, HttpStatus.OK);
     }
 
     // ===== Helpers =====
@@ -94,9 +86,8 @@ public class UserController {
     private static Map<String, Object> sanitizeUser(User u) {
         Map<String, Object> m = new HashMap<>();
         m.put("id", u.getIdUser());
-        m.put("idUser", u.getIdUser()); // compat
         m.put("name", u.getName());
-        m.put("email", u.getEmail());
+        m.put("email", u.getEmailEntity() != null ? u.getEmailEntity().getEmail() : null);
         m.put("role", u.getRole());
         return m;
     }

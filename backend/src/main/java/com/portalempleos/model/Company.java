@@ -17,10 +17,6 @@ public class Company {
     private String nit;
 
     private String name;
-
-    @Column(unique = true)               // <-- ahora existe email en la entidad
-    private String email;
-
     private String website;
     private String location;
 
@@ -34,36 +30,86 @@ public class Company {
     @Column(nullable = false)
     private String password;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "id_email", unique = true)
+    private Email emailEntity;
+
     @PrePersist
     public void prePersist() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (createdAt == null)
+            createdAt = LocalDateTime.now();
     }
 
-    // getters/setters
-    public Long getIdCompany() { return idCompany; }
-    public void setIdCompany(Long idCompany) { this.idCompany = idCompany; }
+    // ===== Getters & Setters =====
+    public Long getIdCompany() {
+        return idCompany;
+    }
 
-    public String getNit() { return nit; }
-    public void setNit(String nit) { this.nit = nit; }
+    public void setIdCompany(Long idCompany) {
+        this.idCompany = idCompany;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getNit() {
+        return nit;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setNit(String nit) {
+        this.nit = nit;
+    }
 
-    public String getWebsite() { return website; }
-    public void setWebsite(String website) { this.website = website; }
+    public String getName() {
+        return name;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getWebsite() {
+        return website;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setWebsite(String website) {
+        this.website = website;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getLocation() {
+        return location;
+    }
+
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public Email getEmailEntity() {
+        return emailEntity;
+    }
+
+    public void setEmailEntity(Email emailEntity) {
+        this.emailEntity = emailEntity;
+    }
 }

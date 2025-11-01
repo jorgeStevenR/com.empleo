@@ -22,24 +22,31 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrNit) throws UsernameNotFoundException {
-        // 1) Usuario por email
+
+        // === 1) Buscar Usuario por email ===
         User u = userRepository.findByEmail(usernameOrNit).orElse(null);
         if (u != null) {
             String role = (u.getRole() == null || u.getRole().isBlank()) ? "USER" : u.getRole().toUpperCase();
+            String email = (u.getEmailEntity() != null) ? u.getEmailEntity().getEmail() : usernameOrNit;
+
             return org.springframework.security.core.userdetails.User
-                    .withUsername(u.getEmail())
+                    .withUsername(email)
                     .password(u.getPassword() == null ? "{noop}" : u.getPassword())
                     .roles(role)
                     .build();
         }
 
-        // 2) Empresa por NIT o Email
+        // === 2) Buscar Empresa por NIT o Email ===
         Company c = companyRepository.findByNit(usernameOrNit)
                 .or(() -> companyRepository.findByEmail(usernameOrNit))
                 .orElseThrow(() -> new UsernameNotFoundException("Usuario/Empresa no encontrado: " + usernameOrNit));
 
+        String companyEmail = (c.getEmailEntity() != null)
+                ? c.getEmailEntity().getEmail()
+                : usernameOrNit;
+
         return org.springframework.security.core.userdetails.User
-                .withUsername(c.getNit()) // o email si prefieres
+                .withUsername(companyEmail)
                 .password(c.getPassword() == null ? "{noop}" : c.getPassword())
                 .roles("EMPLOYER")
                 .build();

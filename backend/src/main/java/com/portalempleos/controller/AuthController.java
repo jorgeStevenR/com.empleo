@@ -2,7 +2,6 @@ package com.portalempleos.controller;
 
 import com.portalempleos.model.Company;
 import com.portalempleos.security.JwtUtil;
-import com.portalempleos.security.PortalUserDetailsService;
 import com.portalempleos.service.CompanyService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,7 +30,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> body) {
-        String username = body.get("username"); // email de usuario o NIT de empresa
+        String username = body.get("username");
         String password = body.get("password");
 
         Authentication auth = authManager.authenticate(
@@ -43,15 +42,9 @@ public class AuthController {
         return ResponseEntity.ok(Map.of("ok", true, "token", token, "role", role));
     }
 
-    // Registro rápido de empresas (opcional)
     @PostMapping("/company/register")
     public ResponseEntity<?> registerCompany(@RequestBody Company c) {
-        if (c.getNit() == null || c.getNit().isBlank() ||
-            c.getPassword() == null || c.getPassword().isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("ok", false, "message", "NIT y password son obligatorios"));
-        }
-        Company saved = companyService.register(c);
-        // Por seguridad, no retornamos el hash
+        Company saved = companyService.register(c, c.getEmailEntity() != null ? c.getEmailEntity().getEmail() : null);
         saved.setPassword(null);
         return ResponseEntity.ok(Map.of("ok", true, "company", saved));
     }

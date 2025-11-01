@@ -23,13 +23,15 @@ public class CompanyDashboardController {
         this.jobRepository = jobRepository;
     }
 
-    // Empleos de la compañía
+    // ===================================================
+    // 🧾 JOBS BY COMPANY
+    // ===================================================
     @GetMapping("/{companyId}/jobs")
-    public List<Map<String,Object>> jobs(@PathVariable Long companyId){
+    public List<Map<String, Object>> jobs(@PathVariable Long companyId) {
         List<Job> list = jobRepository.findByCompany_IdCompany(companyId);
         return list.stream()
                 .map(j -> {
-                    Map<String,Object> m = new HashMap<>();
+                    Map<String, Object> m = new HashMap<>();
                     m.put("id", j.getIdJob());
                     m.put("title", j.getTitle());
                     m.put("location", j.getLocation());
@@ -39,45 +41,57 @@ public class CompanyDashboardController {
                 .collect(Collectors.toList());
     }
 
-    // Postulaciones de la compañía (todas)
+    // ===================================================
+    // 📄 APPLICATIONS BY COMPANY
+    // ===================================================
     @GetMapping("/{companyId}/applications")
-    public List<Map<String,Object>> applications(@PathVariable Long companyId){
+    public List<Map<String, Object>> applications(@PathVariable Long companyId) {
         List<Application> list = applicationRepository.findByJob_Company_IdCompany(companyId);
-        List<Map<String,Object>> out = new ArrayList<>();
-        for (Application a : list){
-            Map<String,Object> m = new HashMap<>();
+        List<Map<String, Object>> out = new ArrayList<>();
+
+        for (Application a : list) {
+            Map<String, Object> m = new HashMap<>();
             m.put("id", a.getIdApplication());
             m.put("status", a.getStatus().name());
             m.put("appliedAt", a.getAppliedAt());
 
-            if (a.getUser()!=null){
-                Map<String,Object> u = new HashMap<>();
+            // === USER INFO ===
+            if (a.getUser() != null) {
+                Map<String, Object> u = new HashMap<>();
                 u.put("id", a.getUser().getIdUser());
                 u.put("name", a.getUser().getName());
-                u.put("email", a.getUser().getEmail());
+                u.put("email", a.getUser().getEmailEntity() != null
+                        ? a.getUser().getEmailEntity().getEmail()
+                        : null);
                 m.put("user", u);
             }
-            if (a.getJob()!=null){
-                Map<String,Object> j = new HashMap<>();
+
+            // === JOB INFO ===
+            if (a.getJob() != null) {
+                Map<String, Object> j = new HashMap<>();
                 j.put("id", a.getJob().getIdJob());
                 j.put("title", a.getJob().getTitle());
                 m.put("job", j);
             }
+
             out.add(m);
         }
+
         return out;
     }
 
-    // Conteos por estado para badges/gráficas
+    // ===================================================
+    // 📊 COUNT BY STATUS (for dashboard graphs)
+    // ===================================================
     @GetMapping("/{companyId}/counts")
-    public Map<String,Object> counts(@PathVariable Long companyId){
+    public Map<String, Object> counts(@PathVariable Long companyId) {
         long total = applicationRepository.countByJob_Company_IdCompany(companyId);
-        long pend  = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Pendiente);
-        long revi  = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Revisando);
-        long rech  = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Rechazado);
-        long acpt  = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Aceptado);
+        long pend = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Pendiente);
+        long revi = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Revisando);
+        long rech = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Rechazado);
+        long acpt = applicationRepository.countByJob_Company_IdCompanyAndStatus(companyId, Application.Status.Aceptado);
 
-        Map<String,Object> m = new HashMap<>();
+        Map<String, Object> m = new HashMap<>();
         m.put("companyId", companyId);
         m.put("total", total);
         m.put("Pendiente", pend);

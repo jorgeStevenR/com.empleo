@@ -1,7 +1,8 @@
 package com.portalempleos.controller;
 
 import com.portalempleos.model.Company;
-import com.portalempleos.repository.CompanyRepository;
+import com.portalempleos.service.CompanyService;
+import com.portalempleos.service.EmailService;
 import com.portalempleos.security.JwtUtil;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,21 +18,24 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 public class CompanyController {
 
-    private final CompanyRepository companyRepository;
+    private final CompanyService companyService;
+    private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwt;
 
-    public CompanyController(CompanyRepository companyRepository,
+    public CompanyController(CompanyService companyService,
+                             EmailService emailService,
                              PasswordEncoder passwordEncoder,
                              JwtUtil jwt) {
-        this.companyRepository = companyRepository;
+        this.companyService = companyService;
+        this.emailService = emailService;
         this.passwordEncoder = passwordEncoder;
         this.jwt = jwt;
     }
 
     private static String safe(Object o){ return o==null? "" : String.valueOf(o).trim(); }
 
-    // ========== REGISTRO EMPRESA (PÚBLICO) ==========
+    // ========== REGISTER COMPANY ==========
     @PostMapping({"", "/register"})
     public ResponseEntity<?> register(@RequestBody Map<String, Object> body) {
         String nit         = safe(body.get("nit"));
@@ -43,60 +47,54 @@ public class CompanyController {
         String raw         = safe(body.get("password"));
 
         if (!StringUtils.hasText(nit) || !StringUtils.hasText(raw)) {
-            return resp(false, "NIT y contraseña son obligatorios", null, HttpStatus.BAD_REQUEST);
+            return resp(false, "NIT and password are required", null, HttpStatus.BAD_REQUEST);
         }
-        if (companyRepository.findByNit(nit).isPresent()) {
-            return resp(false, "La empresa ya existe (NIT)", null, HttpStatus.CONFLICT);
+
+        if (companyService.getByNit(nit).isPresent()) {
+            return resp(false, "Company already exists (NIT)", null, HttpStatus.CONFLICT);
         }
-        if (StringUtils.hasText(email) && companyRepository.findByEmail(email).isPresent()) {
-            return resp(false, "La empresa ya existe (email)", null, HttpStatus.CONFLICT);
+
+        if (emailService.findByEmail(email).isPresent()) {
+            return resp(false, "Email already registered", null, HttpStatus.CONFLICT);
         }
 
         Company c = new Company();
         c.setNit(nit);
         c.setName(name);
-        c.setEmail(StringUtils.hasText(email) ? email : null);
         c.setWebsite(website);
         c.setLocation(location);
         c.setDescription(description);
-        c.setPassword(passwordEncoder.encode(raw));   // HASH AQUÍ
+        c.setPassword(raw);
 
-        Company saved = companyRepository.save(c);
+        Company saved = companyService.register(c, email);
 
         Map<String, Object> dto = new HashMap<>();
         dto.put("id", saved.getIdCompany());
         dto.put("nit", saved.getNit());
         dto.put("name", saved.getName());
-        dto.put("email", saved.getEmail());
+        dto.put("email", saved.getEmailEntity() != null ? saved.getEmailEntity().getEmail() : null);
 
-        return resp(true, "Empresa creada", dto, HttpStatus.CREATED);
+        return resp(true, "Company registered successfully", dto, HttpStatus.CREATED);
     }
 
-    // ========== LOGIN EMPRESA (PÚBLICO) ==========
-    // Permite login usando NIT **o** email + password. No crea usuarios.
+    // ========== LOGIN COMPANY ==========
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, Object> body){
-        String byUsername = safe(body.get("username"));
-        String fromNit    = safe(body.get("nit"));
-        String fromEmail  = safe(body.get("email")).toLowerCase();
-        String raw        = safe(body.get("password"));
+        String username = safe(body.get("username"));
+        String raw = safe(body.get("password"));
 
-        String userOrNit = StringUtils.hasText(byUsername)
-                ? byUsername
-                : (StringUtils.hasText(fromNit) ? fromNit : fromEmail);
-
-        if (!StringUtils.hasText(userOrNit) || !StringUtils.hasText(raw)) {
-            return resp(false, "Usuario (NIT o email) y contraseña son obligatorios", null, HttpStatus.BAD_REQUEST);
+        var companyOpt = companyService.getByNit(username);
+        if (companyOpt.isEmpty()) {
+            companyOpt = companyService.getByEmail(username);
         }
 
-        // sin lambda para evitar el “no efectivamente final”
-        Company c = companyRepository.findByNit(userOrNit).orElse(null);
-        if (c == null) c = companyRepository.findByEmail(userOrNit.toLowerCase()).orElse(null);
-        if (c == null) {
-            return resp(false, "Credenciales inválidas", null, HttpStatus.UNAUTHORIZED);
+        if (companyOpt.isEmpty()) {
+            return resp(false, "Invalid credentials", null, HttpStatus.UNAUTHORIZED);
         }
+
+        Company c = companyOpt.get();
         if (!passwordEncoder.matches(raw, c.getPassword())) {
-            return resp(false, "Credenciales inválidas", null, HttpStatus.UNAUTHORIZED);
+            return resp(false, "Invalid credentials", null, HttpStatus.UNAUTHORIZED);
         }
 
         String token = jwt.generateToken(
@@ -109,13 +107,12 @@ public class CompanyController {
         companyDto.put("id",    c.getIdCompany());
         companyDto.put("nit",   c.getNit());
         companyDto.put("name",  c.getName());
-        companyDto.put("email", c.getEmail());
+        companyDto.put("email", c.getEmailEntity() != null ? c.getEmailEntity().getEmail() : null);
         companyDto.put("role",  "EMPLOYER");
 
         Map<String, Object> res = new HashMap<>();
         res.put("ok", true);
         res.put("message", "Login ok");
-        // mantenemos la clave 'user' para que tu frontend no cambie nada
         res.put("user", companyDto);
         res.put("token", token);
         return ResponseEntity.ok(res);
