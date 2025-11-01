@@ -1,16 +1,42 @@
 version: "3.9"
 
 services:
-  backend:
+  # Servicio 1: Base de datos PostgreSQL
+  db:
+    image: postgres:15
+    container_name: portal_empleos_db
+    restart: always
+    environment:
+      POSTGRES_DB: portal_empleos
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  # Servicio 2: Backend (Spring Boot)
+  app:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: portal_empleos_backend
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: portal_empleos_app
     ports:
       - "8080:8080"
-    env_file:
-      - .env
     environment:
-      # Aseguramos que se use el mismo puerto dentro y fuera del contenedor
       PORT: 8080
-    restart: unless-stopped
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/portal_empleos
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+      APP_JWT_SECRET: secret123
+    depends_on:
+      - db
+    # Opcional: espera a que la BD esté lista antes de arrancar
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -h db -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  db_data:
