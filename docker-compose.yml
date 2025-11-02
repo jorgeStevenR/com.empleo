@@ -1,6 +1,7 @@
 version: "3.9"
 
 services:
+  # Servicio 1: Base de datos PostgreSQL
   db:
     image: postgres:15
     container_name: portal_empleos_db
@@ -14,6 +15,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  # Servicio 2: Backend (Spring Boot)
   app:
     build:
       context: .
@@ -35,6 +37,7 @@ services:
     depends_on:
       - db
 
+    # Espera a que PostgreSQL esté listo
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -h db -U postgres"]
       interval: 10s
