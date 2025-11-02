@@ -5,6 +5,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
+  <!-- 🧱 Hereda configuración base de Spring Boot -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -16,12 +17,15 @@
   <artifactId>backend</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>PortalEmpleos</name>
+  <description>Backend del Portal de Empleos con soporte para .env y PostgreSQL</description>
 
   <properties>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencies>
+
     <!-- 🌐 Web -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -34,21 +38,21 @@
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
-    <!-- 🐘 PostgreSQL -->
+    <!-- 🐘 PostgreSQL Driver -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.7.3</version>
     </dependency>
 
-    <!-- ⚙️ Variables desde .env -->
+    <!-- ⚙️ Carga automática de variables desde archivo .env -->
     <dependency>
       <groupId>me.paulschwarz</groupId>
       <artifactId>spring-dotenv</artifactId>
       <version>4.0.0</version>
     </dependency>
 
-    <!-- 🔁 Recarga automática (solo desarrollo) -->
+    <!-- 🔁 Recarga automática (solo para desarrollo local) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -56,20 +60,31 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- 🧪 Tests -->
+    <!-- 🧪 Pruebas unitarias -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>
     <plugins>
+      <!-- 🚀 Empaquetador de Spring Boot -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <version>3.5.6</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>
+
 </project>
