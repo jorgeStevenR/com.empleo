@@ -41,14 +41,14 @@
       <version>42.7.3</version>
     </dependency>
 
-    <!-- ⚙️ Cargar .env automáticamente -->
+    <!-- ⚙️ Variables desde .env -->
     <dependency>
       <groupId>me.paulschwarz</groupId>
       <artifactId>spring-dotenv</artifactId>
       <version>4.0.0</version>
     </dependency>
 
-    <!-- 🔁 Recarga automática -->
+    <!-- 🔁 Recarga automática (solo desarrollo) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -69,12 +69,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <!-- Esto asegura que lea el .env automáticamente -->
-          <workingDirectory>${project.basedir}</workingDirectory>
-        </configuration>
       </plugin>
     </plugins>
   </build>
-
 </project>
