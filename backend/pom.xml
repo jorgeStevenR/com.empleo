@@ -5,7 +5,6 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <!-- Hereda configuraciones de Spring Boot -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -23,7 +22,7 @@
   </properties>
 
   <dependencies>
-    <!-- 🌐 Web: controladores REST -->
+    <!-- 🌐 Web -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -35,21 +34,21 @@
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
-    <!-- 🐘 Driver PostgreSQL -->
+    <!-- 🐘 PostgreSQL -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.7.3</version>
     </dependency>
 
-    <!-- ⚙️ Cargar variables de entorno desde .env (solo útil en local) -->
+    <!-- ⚙️ Cargar .env automáticamente -->
     <dependency>
       <groupId>me.paulschwarz</groupId>
       <artifactId>spring-dotenv</artifactId>
       <version>4.0.0</version>
     </dependency>
 
-    <!-- 🔁 Auto reload en desarrollo -->
+    <!-- 🔁 Recarga automática -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
@@ -67,15 +66,12 @@
 
   <build>
     <plugins>
-      <!--Plugin de compilación y empaquetado -->
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <!-- Asegura que el .env se cargue antes de correr -->
-          <environmentVariables>
-            <SPRING_CONFIG_IMPORT>optional:file:.env[.properties]</SPRING_CONFIG_IMPORT>
-          </environmentVariables>
+          <!-- Esto asegura que lea el .env automáticamente -->
+          <workingDirectory>${project.basedir}</workingDirectory>
         </configuration>
       </plugin>
     </plugins>
