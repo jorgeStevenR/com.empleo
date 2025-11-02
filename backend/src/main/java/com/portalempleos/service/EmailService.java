@@ -3,26 +3,30 @@ package com.portalempleos.service;
 import com.portalempleos.model.Email;
 import com.portalempleos.repository.EmailRepository;
 import org.springframework.stereotype.Service;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 public class EmailService {
+    private final EmailRepository repo;
 
-    private final EmailRepository emailRepository;
-
-    public EmailService(EmailRepository emailRepository) {
-        this.emailRepository = emailRepository;
+    public EmailService(EmailRepository repo) {
+        this.repo = repo;
     }
 
-    /**
-     * Busca un email por dirección, o lo crea si no existe.
-     */
-    public Email getOrCreate(String address) {
-        return emailRepository.findByEmail(address.toLowerCase())
-                .orElseGet(() -> emailRepository.save(new Email(address.toLowerCase())));
+    public List<Email> findAll() {
+        return repo.findAll();
     }
 
-    public Optional<Email> findByEmail(String address) {
-        return emailRepository.findByEmail(address.toLowerCase());
+    public Optional<Email> findById(Long id) {
+        return repo.findById(id);
+    }
+
+    public Email save(Email e) {
+        return repo.save(e);
+    }
+
+    public void delete(Long id) {
+        repo.deleteById(id);
     }
 }

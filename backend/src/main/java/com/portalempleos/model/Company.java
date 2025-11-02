@@ -1,46 +1,40 @@
 package com.portalempleos.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "companies")
 public class Company {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_company")
     private Long idCompany;
 
-    @Column(nullable = false, unique = true)
     private String nit;
-
     private String name;
     private String website;
     private String location;
 
-    @Column(columnDefinition = "text")
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
-
-    @JsonIgnore
-    @Column(nullable = false)
     private String password;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_email", unique = true)
+    @Column(name = "created_at")
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @OneToOne
+    @JoinColumn(name = "id_email", referencedColumnName = "idEmail", unique = true)
+    @JsonIgnoreProperties({"company"})
     private Email emailEntity;
 
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null)
-            createdAt = LocalDateTime.now();
-    }
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    @JsonIgnoreProperties("company")
+    private List<Job> jobs;
 
-    // ===== Getters & Setters =====
+    // Getters y setters
     public Long getIdCompany() {
         return idCompany;
     }
@@ -97,6 +91,14 @@ public class Company {
         this.createdAt = createdAt;
     }
 
+    public Email getEmailEntity() {
+        return emailEntity;
+    }
+
+    public void setEmailEntity(Email emailEntity) {
+        this.emailEntity = emailEntity;
+    }
+
     public String getPassword() {
         return password;
     }
@@ -105,11 +107,11 @@ public class Company {
         this.password = password;
     }
 
-    public Email getEmailEntity() {
-        return emailEntity;
+    public List<Job> getJobs() {
+        return jobs;
     }
 
-    public void setEmailEntity(Email emailEntity) {
-        this.emailEntity = emailEntity;
+    public void setJobs(List<Job> jobs) {
+        this.jobs = jobs;
     }
 }

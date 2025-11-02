@@ -4,8 +4,10 @@ import com.portalempleos.model.Company;
 import com.portalempleos.model.Email;
 import com.portalempleos.repository.CompanyRepository;
 import com.portalempleos.repository.EmailRepository;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -13,46 +15,57 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final EmailRepository emailRepository;
-    private final PasswordEncoder passwordEncoder;
 
-    public CompanyService(CompanyRepository companyRepository,
-                          EmailRepository emailRepository,
-                          PasswordEncoder passwordEncoder) {
+    public CompanyService(CompanyRepository companyRepository, EmailRepository emailRepository) {
         this.companyRepository = companyRepository;
         this.emailRepository = emailRepository;
-        this.passwordEncoder = passwordEncoder;
     }
 
     /**
-     * Registra una nueva compañía con email único.
+     * ✅ Registrar nueva empresa, verificando que el correo no se repita
      */
-    public Company register(Company c, String emailAddress) {
-        Email email = emailRepository.findByEmail(emailAddress.toLowerCase())
-                .orElseGet(() -> emailRepository.save(new Email(emailAddress.toLowerCase())));
-        c.setEmailEntity(email);
+    @Transactional
+    public Company registerCompany(Company company) {
+        String emailText = company.getEmailEntity().getEmail().toLowerCase();
 
-        if (c.getPassword() != null && !c.getPassword().startsWith("$2a$")) {
-            c.setPassword(passwordEncoder.encode(c.getPassword()));
+        // 🚫 Verificar si el correo ya existe en cualquier empresa o usuario
+        Optional<Email> existing = emailRepository.findByEmail(emailText);
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException("❌ El correo '" + emailText + "' ya está registrado.");
         }
-        return companyRepository.save(c);
+
+        // ✅ Crear nuevo email y asignarlo
+        Email email = new Email();
+        email.setEmail(emailText);
+        emailRepository.save(email);
+
+        company.setEmailEntity(email);
+        return companyRepository.save(company);
     }
 
-    public Optional<Company> getByNit(String nit) {
-        return companyRepository.findByNit(nit);
+    /**
+     * ✅ Listar todas las empresas
+     */
+    public List<Company> findAll() {
+        return companyRepository.findAll();
     }
 
-    public Optional<Company> getById(Long id) {
+    /**
+     * ✅ Buscar una empresa por ID
+     */
+    public Optional<Company> findById(Long id) {
         return companyRepository.findById(id);
     }
 
-    public Optional<Company> getByEmail(String email) {
-        return companyRepository.findAll().stream()
-                .filter(c -> c.getEmailEntity() != null &&
-                        email.equalsIgnoreCase(c.getEmailEntity().getEmail()))
-                .findFirst();
-    }
-
-    public boolean checkPassword(Company c, String raw) {
-        return c != null && raw != null && passwordEncoder.matches(raw, c.getPassword());
+    /**
+     * ✅ Eliminar una empresa por ID
+     */
+    @Transactional
+    public boolean deleteById(Long id) {
+        if (companyRepository.existsById(id)) {
+            companyRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

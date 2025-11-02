@@ -1,46 +1,34 @@
 package com.portalempleos.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
 public class User {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_user")
     private Long idUser;
 
     private String name;
-
-    @JsonIgnore
     private String password;
-
-    @Column(length = 20, nullable = false)
-    private String role; // USER | EMPLOYER | ADMIN
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_company")
-    private Company companyEntity;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_email", unique = true)
-    private Email emailEntity;
+    private String role;
 
     @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @PrePersist
-    public void prePersist() {
-        if (createdAt == null)
-            createdAt = LocalDateTime.now();
-        if (role == null || role.isBlank())
-            role = "USER";
-    }
+    @ManyToOne
+    @JoinColumn(name = "id_company")
+    @JsonIgnoreProperties({"jobs", "emailEntity"})
+    private Company company;
 
-    // ===== Getters & Setters =====
+    @OneToOne
+    @JoinColumn(name = "id_email", referencedColumnName = "idEmail", unique = true)
+    @JsonIgnoreProperties("user")
+    private Email emailEntity;
+
+    // Getters y setters
     public Long getIdUser() {
         return idUser;
     }
@@ -73,12 +61,20 @@ public class User {
         this.role = role;
     }
 
-    public Company getCompanyEntity() {
-        return companyEntity;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setCompanyEntity(Company companyEntity) {
-        this.companyEntity = companyEntity;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     public Email getEmailEntity() {
@@ -87,13 +83,5 @@ public class User {
 
     public void setEmailEntity(Email emailEntity) {
         this.emailEntity = emailEntity;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
     }
 }

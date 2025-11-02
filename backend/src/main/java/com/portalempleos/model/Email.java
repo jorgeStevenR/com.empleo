@@ -6,10 +6,8 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "emails")
 public class Email {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id_email")
     private Long idEmail;
 
     @Column(nullable = false, unique = true)
@@ -18,14 +16,7 @@ public class Email {
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public Email() {} 
-
-    public Email(String email) { 
-        this.email = email;
-    }
-
-
-    // Getters / Setters
+    // Getters y setters
     public Long getIdEmail() {
         return idEmail;
     }
