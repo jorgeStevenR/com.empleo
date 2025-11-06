@@ -28,6 +28,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
+        String path = request.getServletPath();
+
+        // ✅ Excluir rutas públicas del filtro JWT
+        if (path.startsWith("/api/auth")
+                || path.startsWith("/api/users")
+                || path.startsWith("/api/companies")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String jwt = parseJwt(request);
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
@@ -41,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (Exception e) {
-            System.out.println("Error validando token: " + e.getMessage());
+            System.out.println("❌ Error validando token: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

@@ -20,19 +20,16 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
-    // BCrypt para encriptar contraseñas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // AuthenticationManager para el proceso de login
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
-    // Configuración principal de seguridad
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -40,28 +37,22 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeHttpRequests(auth -> auth
+                // ✅ Rutas públicas (sin token)
+                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/users/**").permitAll()
+                .requestMatchers("/api/companies/**").permitAll()
 
-                // Rutas públicas (no necesitan token)
-                .requestMatchers(
-                    "/api/auth/**",
-                    "/api/users/**",
-                    "/api/companies/**"
-                ).permitAll()
-
-                // Rutas accesibles solo para usuarios normales
-                .requestMatchers("/api/applications/**").hasRole("USER")
-
-                // Rutas accesibles solo para empresas
+                // ✅ Rutas protegidas
                 .requestMatchers("/api/jobs/**").hasRole("COMPANY")
-
-                // Rutas solo para el administrador
+                .requestMatchers("/api/applications/**").hasRole("USER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // Cualquier otra ruta requiere autenticación
+                // ✅ Cualquier otra ruta requiere token
                 .anyRequest().authenticated()
             );
 
-        // Agregar el filtro JWT antes del UsernamePasswordAuthenticationFilter
+        // 🔐 Agrega el filtro JWT
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
