@@ -20,29 +20,42 @@ public class SecurityConfig {
         this.jwtAuthFilter = jwtAuthFilter;
     }
 
+    // BCrypt para encriptar contraseñas
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // AuthenticationManager para login
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
     }
 
+    // Configuración principal de seguridad
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors().and().csrf().disable()
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll() // rutas públicas
-                        .requestMatchers("/api/jobs/**").hasAnyRole("COMPANY", "USER")
-                        .requestMatchers("/api/applications/**").hasRole("USER")
-                        .anyRequest().authenticated()
-                );
+            .cors().and().csrf().disable()
+            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            .and()
+            .authorizeHttpRequests(auth -> auth
+                // 🌐 Rutas públicas (registro y login)
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/api/users/**",
+                    "/api/companies/**"
+                ).permitAll()
 
+                // Rutas protegidas por rol
+                .requestMatchers("/api/jobs/**").hasAnyRole("COMPANY", "USER")
+                .requestMatchers("/api/applications/**").hasRole("USER")
+
+                // Cualquier otra requiere autenticación
+                .anyRequest().authenticated()
+            );
+
+        // 🔁 Filtro JWT antes del UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

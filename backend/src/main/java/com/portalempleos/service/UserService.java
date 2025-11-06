@@ -4,6 +4,7 @@ import com.portalempleos.model.Email;
 import com.portalempleos.model.User;
 import com.portalempleos.repository.EmailRepository;
 import com.portalempleos.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,29 +15,37 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final EmailRepository emailRepository;
+    private final PasswordEncoder passwordEncoder; // Para encriptar contraseñas
 
-    public UserService(UserRepository userRepository, EmailRepository emailRepository) {
+    // Constructor con inyección de dependencias
+    public UserService(UserRepository userRepository,
+                       EmailRepository emailRepository,
+                       PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.emailRepository = emailRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
-    // Registrar nuevo usuario con validación de correo único
+    // Registrar nuevo usuario con validación y encriptación
     @Transactional
     public User registerUser(User user) {
         String emailText = user.getEmailEntity().getEmail().toLowerCase();
 
-        // Verificar si el correo ya existe
+        // Validar si el correo ya existe
         Optional<Email> existing = emailRepository.findByEmail(emailText);
         if (existing.isPresent()) {
             throw new IllegalArgumentException("El correo '" + emailText + "' ya está registrado.");
         }
 
-        // Crear nuevo email y asociarlo
+        // Crear el email
         Email email = new Email();
         email.setEmail(emailText);
         emailRepository.save(email);
 
+        // 🔐 Encriptar contraseña antes de guardar
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setEmailEntity(email);
+
         return userRepository.save(user);
     }
 
