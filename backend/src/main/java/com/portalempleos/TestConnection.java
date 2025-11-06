@@ -17,10 +17,10 @@ public class TestConnection implements CommandLineRunner {
     @Override
     public void run(String... args) {
         try (Connection conn = dataSource.getConnection()) {
-            System.out.println("✅ Conexión exitosa a Supabase PostgreSQL");
+            System.out.println("Conexión exitosa a Supabase PostgreSQL");
             System.out.println("Base de datos: " + conn.getCatalog());
         } catch (Exception e) {
-            System.err.println("❌ Error al conectar a Supabase:");
+            System.err.println("Error al conectar a Supabase:");
             e.printStackTrace();
         }
     }

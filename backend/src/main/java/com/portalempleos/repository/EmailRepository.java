@@ -9,6 +9,6 @@ import java.util.Optional;
 @Repository
 public interface EmailRepository extends JpaRepository<Email, Long> {
 
-    // ✅ Buscar por dirección de correo electrónico (para validar duplicados)
+    // Buscar por dirección de correo electrónico (para validar duplicados)
     Optional<Email> findByEmail(String email);
 }

@@ -2,72 +2,68 @@ package com.portalempleos.controller;
 
 import com.portalempleos.model.Company;
 import com.portalempleos.service.CompanyService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/companies")
 @CrossOrigin(origins = "*")
 public class CompanyController {
 
-    private final CompanyService companyService;
+    private final CompanyService service;
 
-    public CompanyController(CompanyService companyService) {
-        this.companyService = companyService;
+    public CompanyController(CompanyService service) {
+        this.service = service;
     }
 
-    // ✅ Crear nueva empresa
+    // Crear nueva empresa
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody Company company) {
+    public ResponseEntity<?> register(@RequestBody Company company) {
         try {
-            Company created = companyService.registerCompany(company);
-            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+            return ResponseEntity.ok(service.registerCompany(company));
         } catch (IllegalArgumentException e) {
-            // Correo duplicado u otra validación
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (Exception e) {
-            // Error inesperado
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al crear la empresa: " + e.getMessage());
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // ✅ Obtener todas las empresas
+    // Actualizar empresa
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Company updated) {
+        Optional<Company> existing = service.findById(id);
+        if (existing.isEmpty()) return ResponseEntity.notFound().build();
+
+        Company company = existing.get();
+        company.setName(updated.getName());
+        company.setNit(updated.getNit());
+        company.setWebsite(updated.getWebsite());
+        company.setLocation(updated.getLocation());
+        company.setDescription(updated.getDescription());
+        company.setPassword(updated.getPassword());
+
+        return ResponseEntity.ok(service.save(company));
+    }
+
+    // 🔹 Listar todas
     @GetMapping
-    public ResponseEntity<List<Company>> getAll() {
-        List<Company> companies = companyService.findAll();
-        if (companies.isEmpty()) {
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(companies);
+    public ResponseEntity<?> findAll() {
+        return ResponseEntity.ok(service.findAll());
     }
 
-    // ✅ Obtener empresa por ID
+    // 🔹 Buscar por ID
     @GetMapping("/{id}")
-    public ResponseEntity<?> getById(@PathVariable Long id) {
-        return companyService.findById(id)
-                .<ResponseEntity<?>>map(ResponseEntity::ok)
-                .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No se encontró la empresa con ID: " + id));
+    public ResponseEntity<?> findById(@PathVariable Long id) {
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // ✅ Eliminar empresa por ID
+    // 🔹 Eliminar
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        try {
-            boolean deleted = companyService.deleteById(id);
-            if (deleted) {
-                return ResponseEntity.noContent().build();
-            } else {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("No se encontró la empresa con ID: " + id);
-            }
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al eliminar la empresa: " + e.getMessage());
-        }
+        return service.deleteById(id)
+                ? ResponseEntity.ok("Empresa eliminada correctamente")
+                : ResponseEntity.notFound().build();
     }
 }

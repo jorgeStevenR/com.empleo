@@ -21,20 +21,18 @@ public class CompanyService {
         this.emailRepository = emailRepository;
     }
 
-    /**
-     * ✅ Registrar nueva empresa, verificando que el correo no se repita
-     */
+    // Registrar nueva empresa verificando correo duplicado
     @Transactional
     public Company registerCompany(Company company) {
         String emailText = company.getEmailEntity().getEmail().toLowerCase();
 
-        // 🚫 Verificar si el correo ya existe en cualquier empresa o usuario
+        // Validar que no se repita el correo
         Optional<Email> existing = emailRepository.findByEmail(emailText);
         if (existing.isPresent()) {
-            throw new IllegalArgumentException("❌ El correo '" + emailText + "' ya está registrado.");
+            throw new IllegalArgumentException("El correo '" + emailText + "' ya está registrado.");
         }
 
-        // ✅ Crear nuevo email y asignarlo
+        // Crear y asociar el nuevo email
         Email email = new Email();
         email.setEmail(emailText);
         emailRepository.save(email);
@@ -43,23 +41,22 @@ public class CompanyService {
         return companyRepository.save(company);
     }
 
-    /**
-     * ✅ Listar todas las empresas
-     */
+    // Guardar o actualizar empresa existente
+    public Company save(Company company) {
+        return companyRepository.save(company);
+    }
+
+    // Listar todas
     public List<Company> findAll() {
         return companyRepository.findAll();
     }
 
-    /**
-     * ✅ Buscar una empresa por ID
-     */
+    // Buscar por ID
     public Optional<Company> findById(Long id) {
         return companyRepository.findById(id);
     }
 
-    /**
-     * ✅ Eliminar una empresa por ID
-     */
+    // Eliminar empresa por ID
     @Transactional
     public boolean deleteById(Long id) {
         if (companyRepository.existsById(id)) {
