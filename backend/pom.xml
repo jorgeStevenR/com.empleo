@@ -5,7 +5,7 @@
 
   <modelVersion>4.0.0</modelVersion>
 
-  <!-- 🧱 Hereda configuración base de Spring Boot -->
+  <!-- 🧱 Base de Spring Boot -->
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
@@ -17,7 +17,7 @@
   <artifactId>backend</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>PortalEmpleos</name>
-  <description>Backend del Portal de Empleos con soporte para .env y PostgreSQL</description>
+  <description>Backend del Portal de Empleos con soporte para .env, JWT y PostgreSQL</description>
 
   <properties>
     <java.version>21</java.version>
@@ -38,21 +38,46 @@
       <artifactId>spring-boot-starter-data-jpa</artifactId>
     </dependency>
 
-    <!-- 🐘 PostgreSQL Driver -->
+    <!-- 🔐 Seguridad (Spring Security + BCrypt) -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-security</artifactId>
+    </dependency>
+
+    <!-- 🔑 JWT (JSON Web Token) -->
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-api</artifactId>
+      <version>0.11.5</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-impl</artifactId>
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.jsonwebtoken</groupId>
+      <artifactId>jjwt-jackson</artifactId> <!-- ✅ usa Jackson para serializar Claims -->
+      <version>0.11.5</version>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- 🐘 PostgreSQL -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.7.3</version>
     </dependency>
 
-    <!-- ⚙️ Carga automática de variables desde archivo .env -->
+    <!-- ⚙️ Variables de entorno (.env) -->
     <dependency>
       <groupId>me.paulschwarz</groupId>
       <artifactId>spring-dotenv</artifactId>
       <version>4.0.0</version>
     </dependency>
 
-    <!-- 🔁 Recarga automática (solo para desarrollo local) -->
+    <!-- 🔁 Recarga automática (solo para desarrollo) -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-devtools</artifactId>
