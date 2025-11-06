@@ -26,7 +26,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // AuthenticationManager para login
+    // AuthenticationManager para el proceso de login
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
@@ -40,22 +40,28 @@ public class SecurityConfig {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeHttpRequests(auth -> auth
-                // 🌐 Rutas públicas (registro y login)
+
+                // Rutas públicas (no necesitan token)
                 .requestMatchers(
                     "/api/auth/**",
                     "/api/users/**",
                     "/api/companies/**"
                 ).permitAll()
 
-                // Rutas protegidas por rol
-                .requestMatchers("/api/jobs/**").hasAnyRole("COMPANY", "USER")
+                // Rutas accesibles solo para usuarios normales
                 .requestMatchers("/api/applications/**").hasRole("USER")
 
-                // Cualquier otra requiere autenticación
+                // Rutas accesibles solo para empresas
+                .requestMatchers("/api/jobs/**").hasRole("COMPANY")
+
+                // Rutas solo para el administrador
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                // Cualquier otra ruta requiere autenticación
                 .anyRequest().authenticated()
             );
 
-        // 🔁 Filtro JWT antes del UsernamePasswordAuthenticationFilter
+        // Agregar el filtro JWT antes del UsernamePasswordAuthenticationFilter
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
