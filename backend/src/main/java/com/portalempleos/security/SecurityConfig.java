@@ -44,7 +44,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/companies/**").permitAll()
 
                 // ✅ Rutas protegidas
-                .requestMatchers("/api/jobs/**").hasRole("COMPANY")
+                .requestMatchers("/api/jobs/**").permitAll()
                 .requestMatchers("/api/applications/**").hasRole("USER")
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 

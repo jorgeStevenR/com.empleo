@@ -3,6 +3,7 @@ package com.portalempleos.controller;
 import com.portalempleos.model.Application;
 import com.portalempleos.service.ApplicationService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
@@ -15,7 +16,7 @@ public class ApplicationController {
     private final ApplicationService service;
 
     public ApplicationController(ApplicationService service) {
-        this.service = service;
+        this.service = service; 
     }
 
     // Crear postulación
@@ -25,6 +26,7 @@ public class ApplicationController {
     }
 
     // Actualizar postulación
+    @PreAuthorize("hasRole('CANDIDATE')")
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Application updated) {
         Optional<Application> existing = service.findById(id);
