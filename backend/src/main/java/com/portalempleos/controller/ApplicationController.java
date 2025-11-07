@@ -12,6 +12,7 @@ import java.util.Optional;
 @RequestMapping("/api/applications")
 @CrossOrigin(origins = "*")
 public class ApplicationController {
+ 
 
     private final ApplicationService service;
 
