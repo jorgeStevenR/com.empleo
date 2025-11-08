@@ -8,6 +8,7 @@ import java.util.List;
 @Entity
 @Table(name = "jobs")
 public class Job {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idJob;
@@ -16,19 +17,23 @@ public class Job {
     private String description;
     private String location;
 
+    // 🆕 Nuevo campo tipo de modalidad
+    @Column(length = 50)
+    private String type = "Remoto"; // valor por defecto
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "id_company")
-    @JsonIgnoreProperties({"jobs", "password"})
+    @JsonIgnoreProperties({ "jobs", "password" })
     private Company company;
 
     @OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
     @JsonIgnoreProperties("job")
     private List<Application> applications;
 
-    // Getters y setters
+    // ======= GETTERS & SETTERS =======
     public Long getIdJob() {
         return idJob;
     }
@@ -59,6 +64,14 @@ public class Job {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public LocalDateTime getCreatedAt() {

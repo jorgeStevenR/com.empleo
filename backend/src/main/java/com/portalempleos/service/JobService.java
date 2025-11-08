@@ -29,4 +29,8 @@ public class JobService {
     public void delete(Long id) {
         repo.deleteById(id);
     }
+    
+    public List<Job> findByCompany(Long idCompany) {
+    return repo.findByCompany_IdCompany(idCompany);
+    }
 }
