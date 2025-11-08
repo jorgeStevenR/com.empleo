@@ -8,6 +8,7 @@ import java.util.List;
 @Entity
 @Table(name = "companies")
 public class Company {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idCompany;
@@ -22,12 +23,16 @@ public class Company {
 
     private String password;
 
+    // 🟩 Nuevo campo: rol de la empresa
+    @Column(nullable = false)
+    private String role = "COMPANY";
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @OneToOne
     @JoinColumn(name = "id_email", referencedColumnName = "idEmail", unique = true)
-    @JsonIgnoreProperties({"company"})
+    @JsonIgnoreProperties({ "company" })
     private Email emailEntity;
 
     @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
@@ -83,6 +88,22 @@ public class Company {
         this.description = description;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -97,14 +118,6 @@ public class Company {
 
     public void setEmailEntity(Email emailEntity) {
         this.emailEntity = emailEntity;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public List<Job> getJobs() {

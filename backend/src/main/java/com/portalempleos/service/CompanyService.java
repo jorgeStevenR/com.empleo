@@ -4,6 +4,7 @@ import com.portalempleos.model.Company;
 import com.portalempleos.model.Email;
 import com.portalempleos.repository.CompanyRepository;
 import com.portalempleos.repository.EmailRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,13 @@ public class CompanyService {
 
     private final CompanyRepository companyRepository;
     private final EmailRepository emailRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public CompanyService(CompanyRepository companyRepository, EmailRepository emailRepository) {
+    public CompanyService(CompanyRepository companyRepository, EmailRepository emailRepository,
+                          PasswordEncoder passwordEncoder) {
         this.companyRepository = companyRepository;
         this.emailRepository = emailRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // Registrar nueva empresa verificando correo duplicado
@@ -37,26 +41,28 @@ public class CompanyService {
         email.setEmail(emailText);
         emailRepository.save(email);
 
+        // 🧩 Codificar la contraseña antes de guardar
+        company.setPassword(passwordEncoder.encode(company.getPassword()));
+
+        // 🧩 Establecer rol explícitamente
+        company.setRole("COMPANY");
+
         company.setEmailEntity(email);
         return companyRepository.save(company);
     }
 
-    // Guardar o actualizar empresa existente
     public Company save(Company company) {
         return companyRepository.save(company);
     }
 
-    // Listar todas
     public List<Company> findAll() {
         return companyRepository.findAll();
     }
 
-    // Buscar por ID
     public Optional<Company> findById(Long id) {
         return companyRepository.findById(id);
     }
 
-    // Eliminar empresa por ID
     @Transactional
     public boolean deleteById(Long id) {
         if (companyRepository.existsById(id)) {

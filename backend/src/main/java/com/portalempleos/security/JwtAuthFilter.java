@@ -30,10 +30,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String path = request.getServletPath();
 
-        // ✅ Excluir rutas públicas del filtro JWT
-        if (path.startsWith("/api/auth")
-                || path.startsWith("/api/users")
-                || path.startsWith("/api/companies")) {
+        // 🟢 Evitar bloqueo en endpoints públicos
+        if (isPublicEndpoint(path)) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -45,7 +43,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -55,6 +54,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    // 🧩 Excluir rutas públicas explícitamente
+    private boolean isPublicEndpoint(String path) {
+        return path.startsWith("/api/auth")
+                || path.startsWith("/api/users")
+                || path.startsWith("/api/companies")
+                || path.startsWith("/api/jobs");
     }
 
     private String parseJwt(HttpServletRequest request) {

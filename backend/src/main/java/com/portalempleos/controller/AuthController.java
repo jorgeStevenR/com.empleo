@@ -33,7 +33,6 @@ public class AuthController {
     public Map<String, Object> login(@RequestBody Map<String, String> body) {
         String email = body.get("email").toLowerCase();
         String password = body.get("password");
-
         Map<String, Object> response = new HashMap<>();
 
         // 🔹 1️⃣ Buscar usuario normal
@@ -44,14 +43,15 @@ public class AuthController {
                 String token = jwtUtils.generateJwtToken(email, user.getRole());
                 response.put("token", token);
                 response.put("role", user.getRole().toString());
-                response.put("userId", user.getIdUser()); // ✅ devuelve el ID del usuario
+                response.put("userId", user.getIdUser());
                 return response;
             }
         }
 
         // 🔹 2️⃣ Buscar empresa
         var companyOpt = companyRepository.findAll().stream()
-                .filter(c -> c.getEmailEntity().getEmail().equalsIgnoreCase(email))
+                .filter(c -> c.getEmailEntity() != null &&
+                        c.getEmailEntity().getEmail().equalsIgnoreCase(email))
                 .findFirst();
 
         if (companyOpt.isPresent()) {
@@ -60,12 +60,11 @@ public class AuthController {
                 String token = jwtUtils.generateJwtToken(email, "COMPANY");
                 response.put("token", token);
                 response.put("role", "COMPANY");
-                response.put("userId", company.getIdCompany()); // ✅ devuelve el ID de la empresa
+                response.put("userId", company.getIdCompany());
                 return response;
             }
         }
 
-        // 🚫 Si no coincide nada
         throw new RuntimeException("Credenciales incorrectas");
     }
 }
