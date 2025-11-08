@@ -29,4 +29,14 @@ public class ApplicationService {
     public void delete(Long id) {
         repo.deleteById(id);
     }
+
+    // ✅ Nuevo: buscar postulaciones por usuario
+    public List<Application> findByUserId(Long userId) {
+        return repo.findByUser_IdUser(userId);
+    }
+
+    // ✅ Nuevo: verificar si ya existe una postulación a ese empleo por ese usuario
+    public Optional<Application> findByUserAndJob(Long userId, Long jobId) {
+        return repo.findByUser_IdUserAndJob_IdJob(userId, jobId);
+    }
 }

@@ -3,31 +3,39 @@ package com.portalempleos.controller;
 import com.portalempleos.model.Application;
 import com.portalempleos.service.ApplicationService;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/applications")
 @CrossOrigin(origins = "*")
 public class ApplicationController {
- 
 
     private final ApplicationService service;
 
     public ApplicationController(ApplicationService service) {
-        this.service = service; 
+        this.service = service;
     }
 
-    // Crear postulación
+    // ✅ Crear postulación (evita duplicados)
     @PostMapping
-    public ResponseEntity<Application> create(@RequestBody Application app) {
-        return ResponseEntity.ok(service.save(app));
+    public ResponseEntity<?> create(@RequestBody Application app) {
+        Long userId = app.getUser().getIdUser();
+        Long jobId = app.getJob().getIdJob();
+
+        // Verificar si ya existe
+        Optional<Application> existing = service.findByUserAndJob(userId, jobId);
+        if (existing.isPresent()) {
+            return ResponseEntity.badRequest().body("⚠️ Ya estás postulado a esta oferta.");
+        }
+
+        Application saved = service.save(app);
+        return ResponseEntity.ok(saved);
     }
 
-    // Actualizar postulación
-    @PreAuthorize("hasRole('CANDIDATE')")
+    // 🔹 Actualizar postulación
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody Application updated) {
         Optional<Application> existing = service.findById(id);
@@ -43,13 +51,13 @@ public class ApplicationController {
         return ResponseEntity.ok(service.save(app));
     }
 
-    // Listar todas
+    // 🔹 Listar todas
     @GetMapping
-    public ResponseEntity<?> findAll() {
+    public ResponseEntity<List<Application>> findAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
-    // Buscar por ID
+    // 🔹 Buscar por ID
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
         return service.findById(id)
@@ -57,10 +65,16 @@ public class ApplicationController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Eliminar postulación
+    // ✅ Nuevo: buscar por usuario
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<Application>> findByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(service.findByUserId(userId));
+    }
+
+    // 🔹 Eliminar postulación
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
         service.delete(id);
-        return ResponseEntity.ok("Postulación eliminada correctamente");
+        return ResponseEntity.ok("🗑️ Postulación eliminada correctamente.");
     }
 }
