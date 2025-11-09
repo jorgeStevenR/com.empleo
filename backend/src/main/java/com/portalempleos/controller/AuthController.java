@@ -5,6 +5,8 @@ import com.portalempleos.model.User;
 import com.portalempleos.repository.CompanyRepository;
 import com.portalempleos.repository.UserRepository;
 import com.portalempleos.security.JwtUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +15,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final UserRepository userRepository;
@@ -30,41 +31,33 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody Map<String, String> body) {
-        String email = body.get("email").toLowerCase();
-        String password = body.get("password");
-        Map<String, Object> response = new HashMap<>();
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> body) {
+        String email = body.getOrDefault("email", "").toLowerCase();
+        String password = body.getOrDefault("password", "");
 
-        // 🔹 1️⃣ Buscar usuario normal
-        var userOpt = userRepository.findByEmailEntity_Email(email);
-        if (userOpt.isPresent()) {
-            User user = userOpt.get();
-            if (passwordEncoder.matches(password, user.getPassword())) {
-                String token = jwtUtils.generateJwtToken(email, user.getRole());
-                response.put("token", token);
-                response.put("role", user.getRole().toString());
-                response.put("userId", user.getIdUser());
-                return response;
-            }
+        Map<String, Object> resp = new HashMap<>();
+
+        // Usuario
+        User user = userRepository.findByEmailEntity_Email(email).orElse(null);
+        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
+            String token = jwtUtils.generateJwtToken(email, user.getRole());
+            resp.put("token", token);
+            resp.put("role", user.getRole());
+            resp.put("userId", user.getIdUser());
+            return ResponseEntity.ok(resp);
         }
 
-        // 🔹 2️⃣ Buscar empresa
-        var companyOpt = companyRepository.findAll().stream()
-                .filter(c -> c.getEmailEntity() != null &&
-                        c.getEmailEntity().getEmail().equalsIgnoreCase(email))
-                .findFirst();
-
-        if (companyOpt.isPresent()) {
-            Company company = companyOpt.get();
-            if (passwordEncoder.matches(password, company.getPassword())) {
-                String token = jwtUtils.generateJwtToken(email, "COMPANY");
-                response.put("token", token);
-                response.put("role", "COMPANY");
-                response.put("userId", company.getIdCompany());
-                return response;
-            }
+        // Empresa
+        Company company = companyRepository.findByEmailEntity_Email(email).orElse(null);
+        if (company != null && passwordEncoder.matches(password, company.getPassword())) {
+            String token = jwtUtils.generateJwtToken(email, "COMPANY");
+            resp.put("token", token);
+            resp.put("role", "COMPANY");
+            resp.put("userId", company.getIdCompany());
+            return ResponseEntity.ok(resp);
         }
 
-        throw new RuntimeException("Credenciales incorrectas");
+        resp.put("message", "Credenciales incorrectas");
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(resp);
     }
 }

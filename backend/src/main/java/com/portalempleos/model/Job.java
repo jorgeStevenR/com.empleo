@@ -1,6 +1,7 @@
 package com.portalempleos.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.portalempleos.model.enums.JobMode;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,9 +18,9 @@ public class Job {
     private String description;
     private String location;
 
-    // 🆕 Nuevo campo tipo de modalidad
-    @Column(length = 50)
-    private String type = "Remoto"; // valor por defecto
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", length = 20, nullable = false)
+    private JobMode mode = JobMode.REMOTE;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -33,7 +34,7 @@ public class Job {
     @JsonIgnoreProperties("job")
     private List<Application> applications;
 
-    // ======= GETTERS & SETTERS =======
+    // Getters/Setters
     public Long getIdJob() {
         return idJob;
     }
@@ -66,12 +67,12 @@ public class Job {
         this.location = location;
     }
 
-    public String getType() {
-        return type;
+    public JobMode getMode() {
+        return mode;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setMode(JobMode mode) {
+        this.mode = mode;
     }
 
     public LocalDateTime getCreatedAt() {

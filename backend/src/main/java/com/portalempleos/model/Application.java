@@ -1,6 +1,7 @@
 package com.portalempleos.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.portalempleos.model.enums.ApplicationStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -13,26 +14,25 @@ public class Application {
 
     @ManyToOne
     @JoinColumn(name = "id_user")
-    @JsonIgnoreProperties({"company", "emailEntity", "password", "role"})
+    @JsonIgnoreProperties({ "company", "emailEntity", "password", "role", "cvUrl" })
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "id_job")
-    @JsonIgnoreProperties({"applications", "company"})
+    @JsonIgnoreProperties({ "applications", "company" })
     private Job job;
 
     @Column(name = "cover_letter")
     private String coverLetter;
 
-    @Column(name = "url_img")
-    private String urlImg;
-
-    private String status;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private ApplicationStatus status = ApplicationStatus.PENDING;
 
     @Column(name = "applied_at")
     private LocalDateTime appliedAt = LocalDateTime.now();
 
-    // Getters y setters
+    // Getters / Setters
     public Long getIdApplication() {
         return idApplication;
     }
@@ -65,19 +65,11 @@ public class Application {
         this.coverLetter = coverLetter;
     }
 
-    public String getUrlImg() {
-        return urlImg;
-    }
-
-    public void setUrlImg(String urlImg) {
-        this.urlImg = urlImg;
-    }
-
-    public String getStatus() {
+    public ApplicationStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ApplicationStatus status) {
         this.status = status;
     }
 

@@ -2,72 +2,113 @@ package com.portalempleos.controller;
 
 import com.portalempleos.model.User;
 import com.portalempleos.service.UserService;
+import com.portalempleos.service.FileStorageService;
+import com.portalempleos.repository.UserRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*")
 public class UserController {
 
     private final UserService service;
+    private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorage;
+    private final UserRepository userRepository;
 
-    public UserController(UserService service) {
+    public UserController(UserService service,
+            PasswordEncoder passwordEncoder,
+            FileStorageService fileStorage,
+            UserRepository userRepository) {
         this.service = service;
+        this.passwordEncoder = passwordEncoder;
+        this.fileStorage = fileStorage;
+        this.userRepository = userRepository;
     }
 
-    // Crear nuevo usuario (registro)
     @PostMapping
     public ResponseEntity<?> register(@RequestBody User user) {
         try {
-            User saved = service.registerUser(user);
-            return ResponseEntity.ok(saved);
+            return ResponseEntity.ok(service.registerUser(user));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    // Actualizar usuario
     @PutMapping("/{id}")
     public ResponseEntity<?> update(@PathVariable Long id, @RequestBody User updatedUser) {
-        Optional<User> existing = service.findById(id);
-        if (existing.isEmpty()) return ResponseEntity.notFound().build();
+        Optional<User> existingOpt = service.findById(id);
+        if (existingOpt.isEmpty())
+            return ResponseEntity.notFound().build();
 
-        User user = existing.get();
-        user.setName(updatedUser.getName());
-        user.setPassword(updatedUser.getPassword());
-        user.setRole(updatedUser.getRole());
-        user.setCompany(updatedUser.getCompany());
+        User existing = existingOpt.get();
+        existing.setName(updatedUser.getName());
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
+        }
+        existing.setRole(updatedUser.getRole());
+        existing.setCompany(updatedUser.getCompany());
 
-        return ResponseEntity.ok(service.save(user));
+        return ResponseEntity.ok(service.save(existing));
     }
 
-    // Listar todos
+    // Upload CV (PDF). Solo el propietario (o ADMIN) puede subirlo.
+    @PutMapping(path = "/{id}/cv", consumes = { "multipart/form-data" })
+    public ResponseEntity<?> uploadCv(@PathVariable Long id,
+            @RequestPart("file") MultipartFile file,
+            Authentication auth) {
+        Optional<User> opt = service.findById(id);
+        if (opt.isEmpty())
+            return ResponseEntity.notFound().build();
+
+        String emailFromAuth = (auth != null) ? auth.getName().toLowerCase() : null;
+        if (emailFromAuth == null)
+            return ResponseEntity.status(401).body("No autenticado");
+
+        User target = opt.get();
+        String targetEmail = target.getEmailEntity().getEmail().toLowerCase();
+
+        boolean isAdmin = userRepository.findByEmailEntity_Email(emailFromAuth)
+                .map(u -> "ADMIN".equalsIgnoreCase(u.getRole()))
+                .orElse(false);
+
+        if (!isAdmin && !targetEmail.equals(emailFromAuth)) {
+            return ResponseEntity.status(403).body("No puedes subir el CV de otro usuario");
+        }
+
+        try {
+            String url = fileStorage.save(file, "cv", Set.of("application/pdf"), "pdf");
+            target.setCvUrl(url);
+            return ResponseEntity.ok(service.save(target));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error subiendo CV: " + e.getMessage());
+        }
+    }
+
     @GetMapping
     public ResponseEntity<?> findAll() {
         return ResponseEntity.ok(service.findAll());
     }
 
-    // Buscar por ID
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
-        Optional<User> user = service.findById(id);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return service.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Buscar por email
     @GetMapping("/email/{email}")
     public ResponseEntity<?> findByEmail(@PathVariable String email) {
-        Optional<User> user = service.findByEmail(email);
-        return user.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return service.findByEmail(email).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    // Eliminar usuario
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable Long id) {
-        boolean deleted = service.delete(id);
-        return deleted ? ResponseEntity.ok("Usuario eliminado correctamente") : ResponseEntity.notFound().build();
+        return service.delete(id) ? ResponseEntity.ok("Usuario eliminado correctamente")
+                : ResponseEntity.notFound().build();
     }
 }

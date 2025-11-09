@@ -1,8 +1,11 @@
 package com.portalempleos.service;
 
 import com.portalempleos.model.Application;
+import com.portalempleos.model.enums.ApplicationStatus;
 import com.portalempleos.repository.ApplicationRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -30,13 +33,34 @@ public class ApplicationService {
         repo.deleteById(id);
     }
 
-    // ✅ Nuevo: buscar postulaciones por usuario
     public List<Application> findByUserId(Long userId) {
         return repo.findByUser_IdUser(userId);
     }
 
-    // ✅ Nuevo: verificar si ya existe una postulación a ese empleo por ese usuario
     public Optional<Application> findByUserAndJob(Long userId, Long jobId) {
         return repo.findByUser_IdUserAndJob_IdJob(userId, jobId);
+    }
+
+    @Transactional
+    public Application updateStatus(Long id, ApplicationStatus newStatus) {
+        Application app = repo.findById(id).orElseThrow();
+        ApplicationStatus current = app.getStatus();
+
+        switch (current) {
+            case PENDING -> {
+                if (!(newStatus == ApplicationStatus.IN_PROGRESS || newStatus == ApplicationStatus.CANCELED)) {
+                    throw new IllegalArgumentException("Transición no permitida desde PENDING a " + newStatus);
+                }
+            }
+            case IN_PROGRESS -> {
+                if (!(newStatus == ApplicationStatus.ACCEPTED || newStatus == ApplicationStatus.REJECTED)) {
+                    throw new IllegalArgumentException("Transición no permitida desde IN_PROGRESS a " + newStatus);
+                }
+            }
+            default -> throw new IllegalArgumentException("La postulación ya es terminal: " + current);
+        }
+
+        app.setStatus(newStatus);
+        return repo.save(app);
     }
 }

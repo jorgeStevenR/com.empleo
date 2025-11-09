@@ -23,9 +23,11 @@ public class Company {
 
     private String password;
 
-    // 🟩 Nuevo campo: rol de la empresa
     @Column(nullable = false)
     private String role = "COMPANY";
+
+    @Column(name = "logo_url")
+    private String logoUrl;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
@@ -39,7 +41,7 @@ public class Company {
     @JsonIgnoreProperties("company")
     private List<Job> jobs;
 
-    // Getters y setters
+    // Getters/Setters
     public Long getIdCompany() {
         return idCompany;
     }
@@ -102,6 +104,14 @@ public class Company {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getLogoUrl() {
+        return logoUrl;
+    }
+
+    public void setLogoUrl(String logoUrl) {
+        this.logoUrl = logoUrl;
     }
 
     public LocalDateTime getCreatedAt() {

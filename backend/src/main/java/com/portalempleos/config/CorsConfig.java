@@ -13,20 +13,17 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    // 📥 Inyecta el valor del .env o application.properties
     @Value("${ALLOWED_ORIGINS:http://localhost:4200}")
     private String allowedOrigins;
 
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // 🧠 Convierte la cadena separada por comas en una lista
-        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        List<String> origins = Arrays.asList(allowedOrigins.split("\\s*,\\s*"));
         config.setAllowedOrigins(origins);
-
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
+        config.setAllowedHeaders(List.of("Authorization","Content-Type","X-Requested-With","Accept","Origin"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 

@@ -15,12 +15,15 @@ public class User {
     private String password;
     private String role;
 
+    @Column(name = "cv_url")
+    private String cvUrl;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne
     @JoinColumn(name = "id_company")
-    @JsonIgnoreProperties({"jobs", "emailEntity"})
+    @JsonIgnoreProperties({ "jobs", "emailEntity" })
     private Company company;
 
     @OneToOne
@@ -28,7 +31,7 @@ public class User {
     @JsonIgnoreProperties("user")
     private Email emailEntity;
 
-    // Getters y setters
+    // Getters/Setters
     public Long getIdUser() {
         return idUser;
     }
@@ -59,6 +62,14 @@ public class User {
 
     public void setRole(String role) {
         this.role = role;
+    }
+
+    public String getCvUrl() {
+        return cvUrl;
+    }
+
+    public void setCvUrl(String cvUrl) {
+        this.cvUrl = cvUrl;
     }
 
     public LocalDateTime getCreatedAt() {

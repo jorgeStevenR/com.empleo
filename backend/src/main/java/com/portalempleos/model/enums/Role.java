@@ -1,4 +1,4 @@
-package com.portalempleos.model;
+package com.portalempleos.model.enums;
 
 public enum Role {
     USER,
