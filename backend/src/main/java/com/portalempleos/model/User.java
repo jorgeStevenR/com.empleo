@@ -1,19 +1,24 @@
 package com.portalempleos.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.portalempleos.model.enums.Role;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "users")
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idUser;
 
     private String name;
     private String password;
-    private String role;
+
+    // ✅ Ahora es un Enum, no un String
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     @Column(name = "cv_url")
     private String cvUrl;
@@ -31,7 +36,23 @@ public class User {
     @JsonIgnoreProperties("user")
     private Email emailEntity;
 
-    // Getters/Setters
+    // ===============================
+    // ✅ Constructores
+    // ===============================
+    public User() {
+    }
+
+    public User(String name, String password, Role role, Email emailEntity) {
+        this.name = name;
+        this.password = password;
+        this.role = role;
+        this.emailEntity = emailEntity;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // ===============================
+    // ✅ Getters y Setters
+    // ===============================
     public Long getIdUser() {
         return idUser;
     }
@@ -56,11 +77,11 @@ public class User {
         this.password = password;
     }
 
-    public String getRole() {
+    public Role getRole() {
         return role;
     }
 
-    public void setRole(String role) {
+    public void setRole(Role role) {
         this.role = role;
     }
 
@@ -94,5 +115,18 @@ public class User {
 
     public void setEmailEntity(Email emailEntity) {
         this.emailEntity = emailEntity;
+    }
+
+    // ===============================
+    // ✅ toString (opcional, útil para logs)
+    // ===============================
+    @Override
+    public String toString() {
+        return "User{" +
+                "idUser=" + idUser +
+                ", name='" + name + '\'' +
+                ", role=" + role +
+                ", email=" + (emailEntity != null ? emailEntity.getEmail() : "null") +
+                '}';
     }
 }

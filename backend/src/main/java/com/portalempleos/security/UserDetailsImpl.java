@@ -10,29 +10,31 @@ import java.util.Collections;
 
 public class UserDetailsImpl implements UserDetails {
 
-    private final String email;
-    private final String password;
-    private final String role;
+    private final User user;
 
     public UserDetailsImpl(User user) {
-        this.email = user.getEmailEntity().getEmail();
-        this.password = user.getPassword();
-        this.role = user.getRole();
+        this.user = user;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singleton(new SimpleGrantedAuthority("ROLE_" + role));
+        // ✅ Si el role es enum (ROLE_USER, ROLE_COMPANY...), lo convertimos a texto
+        String roleName = (user.getRole() != null)
+                ? user.getRole().name()
+                : "ROLE_USER";
+
+        return Collections.singletonList(new SimpleGrantedAuthority(roleName));
     }
 
     @Override
     public String getPassword() {
-        return password;
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return email;
+        // ✅ El username será el correo de la entidad Email asociada
+        return user.getEmailEntity() != null ? user.getEmailEntity().getEmail() : null;
     }
 
     @Override
@@ -53,5 +55,9 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public User getUser() {
+        return user;
     }
 }
