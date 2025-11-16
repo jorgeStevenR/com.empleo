@@ -4,7 +4,6 @@ import com.portalempleos.model.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -18,10 +17,10 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // ✅ Si el role es enum (ROLE_USER, ROLE_COMPANY...), lo convertimos a texto
-        String roleName = (user.getRole() != null)
-                ? user.getRole().name()
-                : "ROLE_USER";
+        String roleName =
+                (user.getRole() != null)
+                        ? user.getRole().name()   // ROLE_USER / ROLE_COMPANY / ROLE_ADMIN
+                        : "ROLE_USER";
 
         return Collections.singletonList(new SimpleGrantedAuthority(roleName));
     }
@@ -33,8 +32,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public String getUsername() {
-        // ✅ El username será el correo de la entidad Email asociada
-        return user.getEmailEntity() != null ? user.getEmailEntity().getEmail() : null;
+        return user.getEmailEntity().getEmail();
     }
 
     @Override

@@ -33,56 +33,75 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .cors(cors -> {
-                })
+                .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        /* Rutas públicas */
+
+                        /* ================================ */
+                        /* 🔐 ENDPOINTS PÚBLICOS DE AUTH     */
+                        /* ================================ */
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
+
+                        /* ================================ */
+                        /* 🧍 REGISTRO DE USUARIOS/EMPRESAS */
+                        /* ================================ */
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/companies").permitAll()
+
+                        /* ================================ */
+                        /* 📂 ARCHIVOS PÚBLICOS (IMÁGENES)   */
+                        /* ================================ */
                         .requestMatchers("/files/**").permitAll()
 
-                        /* Rutas protegidas específicas (van ANTES de /api/jobs/**) */
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/company/*").hasAuthority("ROLE_COMPANY")
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/*/applications")
-                            .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN")
-
-                        /* Listado de empleos público */
+                        /* ================================ */
+                        /* 🟦 JOBS PÚBLICOS                  */
+                        /* ================================ */
                         .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
 
-                        /* Gestión de empleos (solo empresas) */
+                        /* ================================ */
+                        /* 📄 SUBIDA DE ARCHIVOS            */
+                        /* ================================ */
+
+                        // CV → candidatos
+                        .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**")
+                        .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+
+                        // LOGO → empresas
+                        .requestMatchers(HttpMethod.POST, "/api/files/upload/logo/**")
+                        .hasAuthority("ROLE_COMPANY")
+
+                        /* ================================ */
+                        /* 🟧 POSTULACIONES (solo user)     */
+                        /* ================================ */
+                        .requestMatchers("/api/applications/**")
+                        .hasAuthority("ROLE_USER")
+
+                        /* ================================ */
+                        /* 🏢 CRUD OFERTAS (empresa)        */
+                        /* ================================ */
                         .requestMatchers(HttpMethod.POST, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
                         .requestMatchers(HttpMethod.PUT, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
                         .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
 
-                        /* Postulaciones (candidatos) */
-                        .requestMatchers(HttpMethod.POST, "/api/applications/**").hasAuthority("ROLE_USER")
-                        .requestMatchers(HttpMethod.PUT, "/api/applications/**").hasAuthority("ROLE_USER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/applications/**").hasAuthority("ROLE_USER")
-                        .requestMatchers(HttpMethod.GET, "/api/applications/user/**").hasAuthority("ROLE_USER")
-
-                        /* Cambio de estado de postulaciones */
-                        .requestMatchers(HttpMethod.PATCH, "/api/applications/*/status")
-                            .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN", "ROLE_USER")
-
-                        /* Subida de archivos (extra seguridad por rol) */
-                        .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**").hasAuthority("ROLE_USER")
-                        .requestMatchers(HttpMethod.POST, "/api/files/upload/logo/**").hasAuthority("ROLE_COMPANY")
-
-                        /* Endpoints extra de actualización por entidad */
-                        .requestMatchers(HttpMethod.PUT, "/api/companies/*/logo").hasAuthority("ROLE_COMPANY")
-
-                        /* Resto de endpoints de usuarios / empresas requieren autenticación */
+                        /* ================================ */
+                        /* 👤 USUARIOS Y EMPRESAS PRIVADO   */
+                        /* ================================ */
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/companies/**").authenticated()
+
+                        /* ================================ */
+                        /* 🔐 RESTO → TOKEN OBLIGATORIO     */
+                        /* ================================ */
                         .anyRequest().authenticated()
                 );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }

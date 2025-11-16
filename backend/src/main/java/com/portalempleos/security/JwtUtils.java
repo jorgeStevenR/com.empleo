@@ -23,7 +23,6 @@ public class JwtUtils {
 
     private static final long CLOCK_SKEW_MS = 5 * 60 * 1000L;
 
-    /** Genera un JWT con el email y rol */
     public String generateJwtToken(String email, String role) {
         Key key = getSigningKey();
         Date now = new Date();
@@ -38,7 +37,6 @@ public class JwtUtils {
                 .compact();
     }
 
-    /** Valida la firma y la expiración del token */
     public boolean validateJwtToken(String token) {
         try {
             String raw = stripBearer(token);
