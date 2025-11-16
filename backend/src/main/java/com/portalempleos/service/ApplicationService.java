@@ -11,6 +11,7 @@ import java.util.Optional;
 
 @Service
 public class ApplicationService {
+
     private final ApplicationRepository repo;
 
     public ApplicationService(ApplicationRepository repo) {
@@ -43,7 +44,9 @@ public class ApplicationService {
 
     @Transactional
     public Application updateStatus(Long id, ApplicationStatus newStatus) {
-        Application app = repo.findById(id).orElseThrow();
+        Application app = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Postulación no encontrada con id " + id));
+
         ApplicationStatus current = app.getStatus();
 
         switch (current) {

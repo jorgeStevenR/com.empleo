@@ -13,20 +13,29 @@ import java.util.Set;
 @Service
 public class FileStorageService {
 
-    @Value("${file.upload-dir:uploads}")
+    // ⚙️ Ahora usamos el mismo nombre de propiedad que en application.properties y .env
+    @Value("${file.upload.dir:uploads}")
     private String baseDir;
 
-    @Value("${PUBLIC_BASE_URL:http://localhost:8080}")
+    // ⚙️ También usamos la misma propiedad que en WebMvcConfig
+    @Value("${public.base.url:http://localhost:8080}")
     private String publicBaseUrl;
 
     private void ensureDir(Path p) throws IOException {
-        if (!Files.exists(p)) Files.createDirectories(p);
+        if (!Files.exists(p)) {
+            Files.createDirectories(p);
+        }
     }
 
-    public String save(MultipartFile file, String subfolder, Set<String> allowedContentTypes, String forcedExt) throws IOException {
+    public String save(MultipartFile file,
+                       String subfolder,
+                       Set<String> allowedContentTypes,
+                       String forcedExt) throws IOException {
+
         if (file == null || file.isEmpty()) {
             throw new IOException("Archivo vacío");
         }
+
         if (allowedContentTypes != null && !allowedContentTypes.isEmpty()) {
             String ct = file.getContentType() == null ? "" : file.getContentType().toLowerCase();
             if (!allowedContentTypes.contains(ct)) {
@@ -40,13 +49,16 @@ public class FileStorageService {
         String extension = forcedExt != null ? forcedExt :
                 StringUtils.getFilenameExtension(file.getOriginalFilename());
 
-        String cleanExt = (extension == null || extension.isBlank()) ? "" : ("." + extension.replace(".", ""));
+        String cleanExt = (extension == null || extension.isBlank())
+                ? ""
+                : ("." + extension.replace(".", ""));
+
         String filename = Instant.now().toEpochMilli() + cleanExt;
 
         Path target = folder.resolve(filename);
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-        String url = String.format("%s/files/%s/%s", publicBaseUrl.replaceAll("/+$",""), subfolder, filename);
-        return url;
+        String cleanBaseUrl = publicBaseUrl.replaceAll("/+$", "");
+        return String.format("%s/files/%s/%s", cleanBaseUrl, subfolder, filename);
     }
 }

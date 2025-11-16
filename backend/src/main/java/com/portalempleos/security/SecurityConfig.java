@@ -45,31 +45,42 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/companies").permitAll()
                         .requestMatchers("/files/**").permitAll()
+
+                        /* Rutas protegidas específicas (van ANTES de /api/jobs/**) */
+                        .requestMatchers(HttpMethod.GET, "/api/jobs/company/*").hasAuthority("ROLE_COMPANY")
+                        .requestMatchers(HttpMethod.GET, "/api/jobs/*/applications")
+                            .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN")
+
+                        /* Listado de empleos público */
                         .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
 
-                        /* Rutas protegidas */
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/company/*").hasAuthority("ROLE_COMPANY")
+                        /* Gestión de empleos (solo empresas) */
                         .requestMatchers(HttpMethod.POST, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
                         .requestMatchers(HttpMethod.PUT, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
                         .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
 
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/*/applications")
-                        .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN")
-
+                        /* Postulaciones (candidatos) */
                         .requestMatchers(HttpMethod.POST, "/api/applications/**").hasAuthority("ROLE_USER")
                         .requestMatchers(HttpMethod.PUT, "/api/applications/**").hasAuthority("ROLE_USER")
                         .requestMatchers(HttpMethod.DELETE, "/api/applications/**").hasAuthority("ROLE_USER")
                         .requestMatchers(HttpMethod.GET, "/api/applications/user/**").hasAuthority("ROLE_USER")
 
+                        /* Cambio de estado de postulaciones */
                         .requestMatchers(HttpMethod.PATCH, "/api/applications/*/status")
-                        .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN", "ROLE_USER")
+                            .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN", "ROLE_USER")
 
-                        .requestMatchers(HttpMethod.PUT, "/api/users/*/cv").hasAuthority("ROLE_USER")
+                        /* Subida de archivos (extra seguridad por rol) */
+                        .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**").hasAuthority("ROLE_USER")
+                        .requestMatchers(HttpMethod.POST, "/api/files/upload/logo/**").hasAuthority("ROLE_COMPANY")
+
+                        /* Endpoints extra de actualización por entidad */
                         .requestMatchers(HttpMethod.PUT, "/api/companies/*/logo").hasAuthority("ROLE_COMPANY")
 
+                        /* Resto de endpoints de usuarios / empresas requieren autenticación */
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/companies/**").authenticated()
-                        .anyRequest().authenticated());
+                        .anyRequest().authenticated()
+                );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

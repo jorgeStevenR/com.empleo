@@ -1,0 +1,78 @@
+2025-11-15T22:11:51.490-05:00  INFO 8184 --- [restartedMain] com.portalempleos.BackendApplication     : Starting BackendApplication using Java 21.0.7 with PID 8184 (C:\Users\rodri\Documents\programacionWeb\Proyecto\com.empleo\backend\target\classes started by rodri in C:\Users\rodri\Documents\programacionWeb\Proyecto\com.empleo)
+2025-11-15T22:11:51.500-05:00 DEBUG 8184 --- [restartedMain] com.portalempleos.BackendApplication     : Running with Spring Boot v3.5.6, Spring v6.2.11
+2025-11-15T22:11:51.502-05:00  INFO 8184 --- [restartedMain] com.portalempleos.BackendApplication     : No active profile set, falling back to 1 default profile: "default"
+2025-11-15T22:11:51.561-05:00  INFO 8184 --- [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2025-11-15T22:11:51.562-05:00  INFO 8184 --- [restartedMain] .e.DevToolsPropertyDefaultsPostProcessor : For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2025-11-15T22:11:52.540-05:00  INFO 8184 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-15T22:11:52.637-05:00  INFO 8184 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 84 ms. Found 5 JPA repository interfaces.
+2025-11-15T22:11:53.557-05:00  INFO 8184 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-11-15T22:11:53.583-05:00  INFO 8184 --- [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-11-15T22:11:53.584-05:00  INFO 8184 --- [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-11-15T22:11:53.654-05:00  INFO 8184 --- [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-11-15T22:11:53.656-05:00  INFO 8184 --- [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2093 ms
+2025-11-15T22:11:53.929-05:00  INFO 8184 --- [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-15T22:11:54.051-05:00  INFO 8184 --- [restartedMain] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.29.Final
+2025-11-15T22:11:54.128-05:00  INFO 8184 --- [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-11-15T22:11:54.514-05:00  INFO 8184 --- [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-11-15T22:11:54.551-05:00  INFO 8184 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2025-11-15T22:11:56.046-05:00  INFO 8184 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2025-11-15T22:11:56.950-05:00  WARN 8184 --- [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-15T22:11:57.154-05:00  INFO 8184 --- [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 17.6
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-11-15T22:11:58.224-05:00  INFO 8184 --- [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-11-15T22:11:58.227-05:00  INFO 8184 --- [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-15T22:11:58.624-05:00 DEBUG 8184 --- [restartedMain] c.portalempleos.security.JwtAuthFilter   : Filter 'jwtAuthFilter' configured for use
+2025-11-15T22:11:58.833-05:00  INFO 8184 --- [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-11-15T22:11:59.742-05:00  INFO 8184 --- [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-11-15T22:11:59.788-05:00  INFO 8184 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-11-15T22:11:59.798-05:00  INFO 8184 --- [restartedMain] com.portalempleos.BackendApplication     : Started BackendApplication in 8.841 seconds (process running for 9.419)
+2025-11-15T22:12:05.978-05:00  INFO 8184 --- [http-nio-0.0.0.0-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-11-15T22:12:05.978-05:00  INFO 8184 --- [http-nio-0.0.0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-11-15T22:12:05.979-05:00  INFO 8184 --- [http-nio-0.0.0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2025-11-15T22:32:58.475-05:00  INFO 8184 --- [File Watcher] rtingClassPathChangeChangedEventListener : Restarting due to 1 class path change (1 addition, 0 deletions, 0 modifications)
+2025-11-15T22:32:58.480-05:00  INFO 8184 --- [Thread-5] o.s.b.w.e.tomcat.GracefulShutdown        : Commencing graceful shutdown. Waiting for active requests to complete
+2025-11-15T22:32:58.486-05:00  INFO 8184 --- [tomcat-shutdown] o.s.b.w.e.tomcat.GracefulShutdown        : Graceful shutdown complete
+2025-11-15T22:32:58.490-05:00  INFO 8184 --- [Thread-5] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-11-15T22:32:58.493-05:00  INFO 8184 --- [Thread-5] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2025-11-15T22:32:58.494-05:00  INFO 8184 --- [Thread-5] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2025-11-15T22:32:58.631-05:00  INFO 8184 --- [restartedMain] com.portalempleos.BackendApplication     : Starting BackendApplication using Java 21.0.7 with PID 8184 (C:\Users\rodri\Documents\programacionWeb\Proyecto\com.empleo\backend\target\classes started by rodri in C:\Users\rodri\Documents\programacionWeb\Proyecto\com.empleo)
+2025-11-15T22:32:58.632-05:00 DEBUG 8184 --- [restartedMain] com.portalempleos.BackendApplication     : Running with Spring Boot v3.5.6, Spring v6.2.11
+2025-11-15T22:32:58.632-05:00  INFO 8184 --- [restartedMain] com.portalempleos.BackendApplication     : No active profile set, falling back to 1 default profile: "default"
+2025-11-15T22:32:58.877-05:00  INFO 8184 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-15T22:32:58.904-05:00  INFO 8184 --- [restartedMain] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 25 ms. Found 5 JPA repository interfaces.
+2025-11-15T22:32:59.017-05:00  INFO 8184 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2025-11-15T22:32:59.018-05:00  INFO 8184 --- [restartedMain] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2025-11-15T22:32:59.018-05:00  INFO 8184 --- [restartedMain] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.46]
+2025-11-15T22:32:59.040-05:00  INFO 8184 --- [restartedMain] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2025-11-15T22:32:59.041-05:00  INFO 8184 --- [restartedMain] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 407 ms
+2025-11-15T22:32:59.077-05:00  INFO 8184 --- [restartedMain] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-15T22:32:59.081-05:00  INFO 8184 --- [restartedMain] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2025-11-15T22:32:59.091-05:00  INFO 8184 --- [restartedMain] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-11-15T22:32:59.094-05:00  INFO 8184 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Starting...
+2025-11-15T22:33:00.204-05:00  INFO 8184 --- [restartedMain] com.zaxxer.hikari.HikariDataSource       : HikariPool-2 - Start completed.
+2025-11-15T22:33:01.167-05:00  WARN 8184 --- [restartedMain] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-15T22:33:01.351-05:00  INFO 8184 --- [restartedMain] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-2)']
+	Database driver: undefined/unknown
+	Database version: 17.6
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-11-15T22:33:01.476-05:00  INFO 8184 --- [restartedMain] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-11-15T22:33:01.476-05:00  INFO 8184 --- [restartedMain] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-15T22:33:01.521-05:00 DEBUG 8184 --- [restartedMain] c.portalempleos.security.JwtAuthFilter   : Filter 'jwtAuthFilter' configured for use
+2025-11-15T22:33:01.604-05:00  INFO 8184 --- [restartedMain] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-11-15T22:33:01.731-05:00  INFO 8184 --- [restartedMain] o.s.b.d.a.OptionalLiveReloadServer       : LiveReload server is running on port 35729
+2025-11-15T22:33:01.744-05:00  INFO 8184 --- [restartedMain] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2025-11-15T22:33:01.747-05:00  INFO 8184 --- [restartedMain] com.portalempleos.BackendApplication     : Started BackendApplication in 3.159 seconds (process running for 1271.369)
+2025-11-15T22:33:01.749-05:00  INFO 8184 --- [restartedMain] .ConditionEvaluationDeltaLoggingListener : Condition evaluation unchanged
+2025-11-15T22:33:08.538-05:00  INFO 8184 --- [http-nio-0.0.0.0-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-11-15T22:33:08.538-05:00  INFO 8184 --- [http-nio-0.0.0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2025-11-15T22:33:08.539-05:00  INFO 8184 --- [http-nio-0.0.0.0-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms

@@ -18,7 +18,9 @@ public class AuthController {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtUtils jwtUtils) {
+    public AuthController(UserRepository userRepository,
+                          PasswordEncoder passwordEncoder,
+                          JwtUtils jwtUtils) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtils = jwtUtils;
@@ -39,8 +41,6 @@ public class AuthController {
         }
 
         System.out.println("🔹 Intentando login de: " + email);
-        System.out.println("🔹 Password ingresada: " + password);
-        System.out.println("🔹 Password en BD: " + user.getPassword());
 
         boolean matches = passwordEncoder.matches(password, user.getPassword());
         System.out.println("🔹 Coincide: " + matches);
