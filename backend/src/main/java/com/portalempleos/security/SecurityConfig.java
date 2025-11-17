@@ -37,67 +37,46 @@ public class SecurityConfig {
         http
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                        /* ================================ */
-                        /* 🔐 ENDPOINTS PÚBLICOS DE AUTH     */
-                        /* ================================ */
+                        /* PUBLICO TOTAL */
+                        .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/companies/**").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
 
-                        /* ================================ */
-                        /* 🧍 REGISTRO DE USUARIOS/EMPRESAS */
-                        /* ================================ */
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/companies").permitAll()
 
-                        /* ================================ */
-                        /* 📂 ARCHIVOS PÚBLICOS (IMÁGENES)   */
-                        /* ================================ */
                         .requestMatchers("/files/**").permitAll()
 
-                        /* ================================ */
-                        /* 🟦 JOBS PÚBLICOS                  */
-                        /* ================================ */
-                        .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
-
-                        /* ================================ */
-                        /* 📄 SUBIDA DE ARCHIVOS            */
-                        /* ================================ */
-
-                        // CV → candidatos
+                        /* SUBIR ARCHIVOS */
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**")
-                        .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                            .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
-                        // LOGO → empresas
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/logo/**")
-                        .hasAuthority("ROLE_COMPANY")
+                            .hasAuthority("ROLE_COMPANY")
 
-                        /* ================================ */
-                        /* 🟧 POSTULACIONES (solo user)     */
-                        /* ================================ */
+                        /* POSTULACIONES — solo usuarios */
                         .requestMatchers("/api/applications/**")
-                        .hasAuthority("ROLE_USER")
+                            .hasAuthority("ROLE_USER")
 
-                        /* ================================ */
-                        /* 🏢 CRUD OFERTAS (empresa)        */
-                        /* ================================ */
-                        .requestMatchers(HttpMethod.POST, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
-                        .requestMatchers(HttpMethod.PUT, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
-                        .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
+                        /* CRUD OFERTAS — solo empresa */
+                        .requestMatchers(HttpMethod.POST, "/api/jobs/**")
+                            .hasAuthority("ROLE_COMPANY")
+                        .requestMatchers(HttpMethod.PUT, "/api/jobs/**")
+                            .hasAuthority("ROLE_COMPANY")
+                        .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
+                            .hasAuthority("ROLE_COMPANY")
 
-                        /* ================================ */
-                        /* 👤 USUARIOS Y EMPRESAS PRIVADO   */
-                        /* ================================ */
+                        /* PRIVADO */
                         .requestMatchers("/api/users/**").authenticated()
                         .requestMatchers("/api/companies/**").authenticated()
 
-                        /* ================================ */
-                        /* 🔐 RESTO → TOKEN OBLIGATORIO     */
-                        /* ================================ */
-                        .anyRequest().authenticated()
+                        /* TODO LO DEMÁS REQUIRE TOKEN */
+                        .anyRequest().permitAll()
                 );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

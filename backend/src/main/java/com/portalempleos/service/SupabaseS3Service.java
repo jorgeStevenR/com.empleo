@@ -42,33 +42,62 @@ public class SupabaseS3Service {
                 .build();
     }
 
-    // ================================
-    // ✔ TEST DE CONEXIÓN
-    // ================================
-    public void testConnection() throws Exception {
-        try {
-            s3Client.listBuckets();
-        } catch (Exception e) {
-            throw new Exception("Error conectando a Supabase S3: " + e.getMessage(), e);
+    // ================================================
+    // 📌 SUBIR LOGO CON NOMBRE ÚNICO
+    // ================================================
+    public String uploadCompanyLogo(MultipartFile file, Long companyId) throws Exception {
+
+        String contentType = file.getContentType();
+        if (contentType == null ||
+                !(contentType.equals("image/png") ||
+                  contentType.equals("image/jpeg") ||
+                  contentType.equals("image/jpg") ||
+                  contentType.equals("image/svg+xml"))) {
+
+            throw new IllegalArgumentException("Formato inválido. Solo PNG, JPG, JPEG o SVG.");
         }
+
+        // Extensión del archivo
+        String ext = switch (contentType) {
+            case "image/png" -> "png";
+            case "image/jpeg", "image/jpg" -> "jpg";
+            case "image/svg+xml" -> "svg";
+            default -> "bin";
+        };
+
+        long timestamp = Instant.now().toEpochMilli();
+
+        // clave en el bucket
+        String key = "logos/" + companyId + "/" + timestamp + "." + ext;
+
+        // encode para evitar errores con espacios
+        String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
+
+        PutObjectRequest putReq = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType)
+                .build();
+
+        s3Client.putObject(putReq, RequestBody.fromBytes(file.getBytes()));
+
+        // URL pública FINAL
+        return publicUrl + "/" + bucket + "/" + encodedKey;
     }
 
-    // ================================
-    // ✔ SUBIR PDF
-    // ================================
+
+    // ================================================
+    // 📌 SUBIR CV (PDF)
+    // ================================================
     public String uploadPdf(MultipartFile file, String folder) throws Exception {
 
         if (!file.getContentType().equals("application/pdf")) {
             throw new IllegalArgumentException("Solo se permiten archivos PDF.");
         }
 
-        // Nombre interno del archivo
         String key = folder + "/" + Instant.now().toEpochMilli() + ".pdf";
-
-        // Para evitar problemas de espacios y %
         String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
 
-        // Petición de subida
         PutObjectRequest putReq = PutObjectRequest.builder()
                 .bucket(bucket)
                 .key(key)
@@ -77,7 +106,6 @@ public class SupabaseS3Service {
 
         s3Client.putObject(putReq, RequestBody.fromBytes(file.getBytes()));
 
-        // 🔥 FIX COMPLETO: CONSTRUIR URL REAL DE SUPABASE STORAGE
         return publicUrl + "/" + bucket + "/" + encodedKey;
     }
 }

@@ -1,5 +1,6 @@
 package com.portalempleos.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.portalempleos.model.enums.JobMode;
 import jakarta.persistence.*;
@@ -30,72 +31,32 @@ public class Job {
     @JsonIgnoreProperties({ "jobs", "password" })
     private Company company;
 
-    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("job")
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Application> applications;
 
-    // Getters/Setters
-    public Long getIdJob() {
-        return idJob;
-    }
+    // Getters y setters
+    public Long getIdJob() { return idJob; }
+    public void setIdJob(Long idJob) { this.idJob = idJob; }
 
-    public void setIdJob(Long idJob) {
-        this.idJob = idJob;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public String getDescription() {
-        return description;
-    }
+    public JobMode getMode() { return mode; }
+    public void setMode(JobMode mode) { this.mode = mode; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public String getLocation() {
-        return location;
-    }
+    public Company getCompany() { return company; }
+    public void setCompany(Company company) { this.company = company; }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    public JobMode getMode() {
-        return mode;
-    }
-
-    public void setMode(JobMode mode) {
-        this.mode = mode;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Company getCompany() {
-        return company;
-    }
-
-    public void setCompany(Company company) {
-        this.company = company;
-    }
-
-    public List<Application> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(List<Application> applications) {
-        this.applications = applications;
-    }
+    public List<Application> getApplications() { return applications; }
+    public void setApplications(List<Application> applications) { this.applications = applications; }
 }

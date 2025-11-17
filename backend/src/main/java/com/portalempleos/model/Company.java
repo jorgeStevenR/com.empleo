@@ -1,5 +1,6 @@
 package com.portalempleos.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -37,104 +38,44 @@ public class Company {
     @JsonIgnoreProperties({ "company" })
     private Email emailEntity;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
-    @JsonIgnoreProperties("company")
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Job> jobs;
 
-    // Getters/Setters
-    public Long getIdCompany() {
-        return idCompany;
-    }
+    // Getters y Setters
+    public Long getIdCompany() { return idCompany; }
+    public void setIdCompany(Long idCompany) { this.idCompany = idCompany; }
 
-    public void setIdCompany(Long idCompany) {
-        this.idCompany = idCompany;
-    }
+    public String getNit() { return nit; }
+    public void setNit(String nit) { this.nit = nit; }
 
-    public String getNit() {
-        return nit;
-    }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    public void setNit(String nit) {
-        this.nit = nit;
-    }
+    public String getWebsite() { return website; }
+    public void setWebsite(String website) { this.website = website; }
 
-    public String getName() {
-        return name;
-    }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public String getWebsite() {
-        return website;
-    }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 
-    public void setWebsite(String website) {
-        this.website = website;
-    }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
 
-    public String getLocation() {
-        return location;
-    }
+    public String getLogoUrl() { return logoUrl; }
+    public void setLogoUrl(String logoUrl) { this.logoUrl = logoUrl; }
 
-    public void setLocation(String location) {
-        this.location = location;
-    }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
-    public String getDescription() {
-        return description;
-    }
+    public Email getEmailEntity() { return emailEntity; }
+    public void setEmailEntity(Email emailEntity) { this.emailEntity = emailEntity; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getLogoUrl() {
-        return logoUrl;
-    }
-
-    public void setLogoUrl(String logoUrl) {
-        this.logoUrl = logoUrl;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Email getEmailEntity() {
-        return emailEntity;
-    }
-
-    public void setEmailEntity(Email emailEntity) {
-        this.emailEntity = emailEntity;
-    }
-
-    public List<Job> getJobs() {
-        return jobs;
-    }
-
-    public void setJobs(List<Job> jobs) {
-        this.jobs = jobs;
-    }
+    public List<Job> getJobs() { return jobs; }
+    public void setJobs(List<Job> jobs) { this.jobs = jobs; }
 }

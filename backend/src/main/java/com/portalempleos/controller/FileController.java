@@ -20,8 +20,8 @@ import java.util.Set;
 @RequestMapping("/api/files")
 public class FileController {
 
-    private final SupabaseS3Service supabaseS3Service;  
-    private final FileStorageService fileStorageService; 
+    private final SupabaseS3Service supabaseS3Service;
+    private final FileStorageService fileStorageService;
     private final UserRepository userRepository;
     private final CompanyRepository companyRepository;
 
@@ -38,57 +38,7 @@ public class FileController {
     }
 
     // ===================================================
-    // 📌 SUBIR CV (Solo dueño o ADMIN)
-    // ===================================================
-    @PostMapping("/upload/cv/{userId}")
-    public ResponseEntity<?> uploadCv(
-            @PathVariable Long userId,
-            @RequestParam("file") MultipartFile file,
-            Authentication auth) {
-
-        try {
-            if (auth == null || !auth.isAuthenticated()) {
-                return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
-            }
-
-            String requesterEmail = auth.getName().toLowerCase();
-            Optional<User> requesterOpt = userRepository.findByEmailEntity_Email(requesterEmail);
-
-            if (requesterOpt.isEmpty()) {
-                return ResponseEntity.status(403).body(Map.of("error", "Usuario no encontrado en token"));
-            }
-
-            User requester = requesterOpt.get();
-            boolean isAdmin = requester.getRole() == Role.ROLE_ADMIN;
-
-            User target = userRepository.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-            // SOLO ADMIN o EL MISMO usuario
-            if (!isAdmin && !target.getEmailEntity().getEmail().equalsIgnoreCase(requesterEmail)) {
-                return ResponseEntity.status(403).body(Map.of("error",
-                        "No tienes permisos para modificar este perfil"));
-            }
-
-            // Subir archivo a Supabase Storage
-            String url = supabaseS3Service.uploadPdf(file, "cv");
-
-            target.setCvUrl(url);
-            userRepository.save(target);
-
-            return ResponseEntity.ok(Map.of(
-                    "message", "CV subido correctamente.",
-                    "cvUrl", url
-            ));
-
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Error subiendo CV: " + e.getMessage()));
-        }
-    }
-
-    // ===================================================
-    // 🔵 SUBIR LOGO (solo empresa en su propia cuenta)
+    // 📌 SUBIR LOGO (S3 CON NOMBRE ÚNICO)
     // ===================================================
     @PostMapping("/upload/logo/{companyId}")
     public ResponseEntity<?> uploadLogo(
@@ -102,8 +52,10 @@ public class FileController {
             }
 
             String requesterEmail = auth.getName().toLowerCase();
+
             Optional<Company> requesterCompanyOpt =
                     companyRepository.findByEmailEntity_Email(requesterEmail);
+
             Optional<User> requesterUserOpt =
                     userRepository.findByEmailEntity_Email(requesterEmail);
 
@@ -113,26 +65,28 @@ public class FileController {
             Company target = companyRepository.findById(companyId)
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
 
-            // Solo su propio logo si no es administrador
-            if (!isAdmin && !target.getEmailEntity().getEmail().equalsIgnoreCase(requesterEmail)) {
-                return ResponseEntity.status(403).body(Map.of("error",
-                        "No tienes permisos para modificar esta empresa"));
+            if (!isAdmin &&
+                    !target.getEmailEntity().getEmail().equalsIgnoreCase(requesterEmail)) {
+
+                return ResponseEntity.status(403).body(Map.of(
+                        "error", "No tienes permisos para modificar esta empresa"
+                ));
             }
 
-            Set<String> allowedTypes = Set.of("image/png", "image/jpeg", "image/jpg", "image/svg+xml");
-            String url = fileStorageService.save(file, "logos", allowedTypes, null);
+            // SUBIR A SUPABASE S3
+            String url = supabaseS3Service.uploadCompanyLogo(file, companyId);
 
             target.setLogoUrl(url);
             companyRepository.save(target);
 
             return ResponseEntity.ok(Map.of(
-                    "message", "Logo actualizado correctamente.",
+                    "message", "Logo subido correctamente",
                     "logoUrl", url
             ));
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Error al subir logo: " + e.getMessage()));
+                    .body(Map.of("error", "Error subiendo logo: " + e.getMessage()));
         }
     }
 }
