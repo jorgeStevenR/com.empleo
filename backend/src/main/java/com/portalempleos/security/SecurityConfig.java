@@ -56,7 +56,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/companies").permitAll()
 
-                        // Archivos estáticos o rutas públicas
+                        // Archivos estáticos o rutas públicas test
                         .requestMatchers("/files/**").permitAll()
 
 
