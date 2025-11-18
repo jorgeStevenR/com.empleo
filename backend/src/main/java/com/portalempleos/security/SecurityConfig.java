@@ -61,7 +61,7 @@ public class SecurityConfig {
 
 
                         /* ==========================
-                           🔐 SUBIR ARCHIVOS (Privado)
+                           🔐 SUBIR ARCHIVOS (Privado)s
                            ========================== */
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**")
                             .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
