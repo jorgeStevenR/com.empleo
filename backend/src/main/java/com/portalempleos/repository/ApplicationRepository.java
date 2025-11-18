@@ -13,6 +13,6 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     List<Application> findByUser_IdUser(Long userId);
 
-    // 🆕 NUEVO: obtener todas las postulaciones asociadas a un empleo
+    // 🆕 NUEVO: obtener todas las postulaciones asociadas a un empleoa
     List<Application> findByJob_IdJob(Long jobId);
 }
