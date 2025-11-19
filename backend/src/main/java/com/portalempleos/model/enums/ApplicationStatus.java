@@ -7,3 +7,4 @@ public enum ApplicationStatus {
     REJECTED,     // rechazado
     CANCELED      // cancelada por el candidato
 }
+ 

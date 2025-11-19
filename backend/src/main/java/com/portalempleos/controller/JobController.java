@@ -38,6 +38,7 @@ public class JobController {
         job.setLocation(updated.getLocation());
         job.setCompany(updated.getCompany());
         job.setMode(updated.getMode());
+        job.setSalary(updated.getSalary());
 
         return ResponseEntity.ok(service.save(job));
     }

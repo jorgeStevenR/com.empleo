@@ -8,6 +8,7 @@ import java.util.Optional;
 
 @Service
 public class JobService {
+
     private final JobRepository repo;
 
     public JobService(JobRepository repo) {
@@ -29,8 +30,8 @@ public class JobService {
     public void delete(Long id) {
         repo.deleteById(id);
     }
-    
+
     public List<Job> findByCompany(Long idCompany) {
-    return repo.findByCompany_IdCompany(idCompany);
+        return repo.findByCompany_IdCompany(idCompany);
     }
 }

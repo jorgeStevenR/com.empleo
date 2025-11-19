@@ -35,22 +35,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                // CORS habilitado (usa tu CorsFilter personalizado)
                 .cors(cors -> {})
-
-                // CSRF desactivado para API REST
                 .csrf(csrf -> csrf.disable())
-
-                // Stateless: sin sesiones
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // ====== AUTORIZACIÓN ======
                 .authorizeHttpRequests(auth -> auth
 
-                        // Permitir preflight OPTIONS SIEMPRE
+                        // ========================
+                        // PERMITIR OPTIONS
+                        // ========================
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // ====== RUTAS PÚBLICAS ======
+                        // ========================
+                        // RUTAS PÚBLICAS
+                        // ========================
                         .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/**").permitAll()
 
@@ -62,46 +60,69 @@ public class SecurityConfig {
 
                         .requestMatchers("/files/**").permitAll()
 
-                        // ====== SUBIDA DE ARCHIVOS ======
+                        // ========================
+                        // SUBIDA DE ARCHIVOS
+                        // ========================
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**")
                                 .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/logo/**")
                                 .hasAuthority("ROLE_COMPANY")
 
-                        // ====== POSTULACIONES ======
+                        // ========================
+                        // POSTULACIONES
+                        // ========================
                         .requestMatchers(HttpMethod.POST, "/api/applications")
                                 .hasAuthority("ROLE_USER")
+
                         .requestMatchers(HttpMethod.GET, "/api/applications/user/**")
                                 .hasAuthority("ROLE_USER")
+
                         .requestMatchers(HttpMethod.GET, "/api/applications/job/**")
                                 .hasAuthority("ROLE_COMPANY")
+
                         .requestMatchers(HttpMethod.PATCH, "/api/applications/**")
                                 .hasAnyAuthority("ROLE_COMPANY", "ROLE_ADMIN")
+
                         .requestMatchers(HttpMethod.GET, "/api/applications/**")
                                 .hasAnyAuthority("ROLE_USER", "ROLE_COMPANY", "ROLE_ADMIN")
 
-                        // ====== CRUD EMPLEOS ======
+                        // ========================
+                        // CRUD EMPLEOS (CORREGIDO)
+                        // ========================
+
+                        // 🔥 ESTA ES LA RUTA QUE FALTABA
+                        .requestMatchers(HttpMethod.POST, "/api/jobs")
+                                .hasAuthority("ROLE_COMPANY")
+
+                        // Para rutas con /{id}
                         .requestMatchers(HttpMethod.POST, "/api/jobs/**")
                                 .hasAuthority("ROLE_COMPANY")
+
                         .requestMatchers(HttpMethod.PUT, "/api/jobs/**")
                                 .hasAuthority("ROLE_COMPANY")
+
                         .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
                                 .hasAuthority("ROLE_COMPANY")
 
-                        // ====== CRUD USUARIOS ======
+                        // ========================
+                        // CRUD USUARIOS
+                        // ========================
                         .requestMatchers("/api/users/**").authenticated()
 
-                        // Empresas: solo PUT/DELETE protegidos
+                        // Empresas
                         .requestMatchers(HttpMethod.PUT, "/api/companies/**")
                                 .hasAuthority("ROLE_COMPANY")
+
                         .requestMatchers(HttpMethod.DELETE, "/api/companies/**")
                                 .hasAuthority("ROLE_ADMIN")
 
-                        // ====== TODO LO DEMÁS PERMITIDO ======
+                        // ========================
+                        // RESTO PERMITIDO
+                        // ========================
                         .anyRequest().permitAll()
                 );
 
-        // Filtro JWT antes del de Username & Password
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

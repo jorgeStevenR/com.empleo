@@ -19,6 +19,8 @@ public class Job {
     private String description;
     private String location;
 
+    private String salary;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "type", length = 20, nullable = false)
     private JobMode mode = JobMode.REMOTE;
@@ -35,28 +37,75 @@ public class Job {
     @JsonIgnore
     private List<Application> applications;
 
-    // Getters y setters
-    public Long getIdJob() { return idJob; }
-    public void setIdJob(Long idJob) { this.idJob = idJob; }
+    public Long getIdJob() {
+        return idJob;
+    }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public void setIdJob(Long idJob) {
+        this.idJob = idJob;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public String getTitle() {
+        return title;
+    }
 
-    public String getLocation() { return location; }
-    public void setLocation(String location) { this.location = location; }
+    public void setTitle(String title) {
+        this.title = title;
+    }
 
-    public JobMode getMode() { return mode; }
-    public void setMode(JobMode mode) { this.mode = mode; }
+    public String getDescription() {
+        return description;
+    }
 
-    public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public Company getCompany() { return company; }
-    public void setCompany(Company company) { this.company = company; }
+    public String getLocation() {
+        return location;
+    }
 
-    public List<Application> getApplications() { return applications; }
-    public void setApplications(List<Application> applications) { this.applications = applications; }
+    public void setLocation(String location) {
+        this.location = location;
+    }
+
+    public String getSalary() {
+        return salary;
+    }
+
+    public void setSalary(String salary) {
+        this.salary = salary;
+    }
+
+    public JobMode getMode() {
+        return mode;
+    }
+
+    public void setMode(JobMode mode) {
+        this.mode = mode;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
+    public List<Application> getApplications() {
+        return applications;
+    }
+
+    public void setApplications(List<Application> applications) {
+        this.applications = applications;
+    }
 }
