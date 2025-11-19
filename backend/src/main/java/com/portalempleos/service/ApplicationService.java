@@ -44,6 +44,7 @@ public class ApplicationService {
 
     @Transactional
     public Application updateStatus(Long id, ApplicationStatus newStatus) {
+
         Application app = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Postulación no encontrada con id " + id));
 
@@ -51,19 +52,35 @@ public class ApplicationService {
 
         switch (current) {
             case PENDING -> {
-                if (!(newStatus == ApplicationStatus.IN_PROGRESS || newStatus == ApplicationStatus.CANCELED)) {
-                    throw new IllegalArgumentException("Transición no permitida desde PENDING a " + newStatus);
+                // Ahora sí permite aprobar o rechazar directamente
+                if (!(newStatus == ApplicationStatus.IN_PROGRESS ||
+                      newStatus == ApplicationStatus.ACCEPTED ||
+                      newStatus == ApplicationStatus.REJECTED ||
+                      newStatus == ApplicationStatus.CANCELED)) {
+
+                    throw new IllegalArgumentException(
+                            "Transición no permitida desde PENDING a " + newStatus
+                    );
                 }
             }
             case IN_PROGRESS -> {
-                if (!(newStatus == ApplicationStatus.ACCEPTED || newStatus == ApplicationStatus.REJECTED)) {
-                    throw new IllegalArgumentException("Transición no permitida desde IN_PROGRESS a " + newStatus);
+                if (!(newStatus == ApplicationStatus.ACCEPTED ||
+                      newStatus == ApplicationStatus.REJECTED)) {
+
+                    throw new IllegalArgumentException(
+                            "Transición no permitida desde IN_PROGRESS a " + newStatus
+                    );
                 }
             }
-            default -> throw new IllegalArgumentException("La postulación ya es terminal: " + current);
+            default -> throw new IllegalArgumentException("La postulación ya está en estado final: " + current);
         }
 
         app.setStatus(newStatus);
         return repo.save(app);
     }
+
+    public List<Application> findByJobId(Long jobId) {
+        return repo.findByJob_IdJob(jobId);
+    }
+
 }

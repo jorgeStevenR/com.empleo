@@ -25,26 +25,32 @@ public class CompanyService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Registrar nueva empresa verificando correo duplicado
+    // ✔ Registrar nueva empresa verificando correo + NIT duplicado
     @Transactional
     public Company registerCompany(Company company) {
-        String emailText = company.getEmailEntity().getEmail().toLowerCase();
 
-        // Validar que no se repita el correo
-        Optional<Email> existing = emailRepository.findByEmail(emailText);
-        if (existing.isPresent()) {
+        String emailText = company.getEmailEntity().getEmail().toLowerCase();
+        String nitText = company.getNit();
+
+        // ✔ Validar NIT único
+        if (companyRepository.findByNit(nitText).isPresent()) {
+            throw new IllegalArgumentException("El NIT '" + nitText + "' ya está registrado.");
+        }
+
+        // ✔ Validar email único
+        if (emailRepository.findByEmail(emailText).isPresent()) {
             throw new IllegalArgumentException("El correo '" + emailText + "' ya está registrado.");
         }
 
-        // Crear y asociar el nuevo email
+        // Crear email asociado
         Email email = new Email();
         email.setEmail(emailText);
         emailRepository.save(email);
 
-        // 🧩 Codificar la contraseña antes de guardar
+        // Codificar contraseña
         company.setPassword(passwordEncoder.encode(company.getPassword()));
 
-        // 🧩 Establecer rol explícitamente
+        // Rol por defecto
         company.setRole("COMPANY");
 
         company.setEmailEntity(email);

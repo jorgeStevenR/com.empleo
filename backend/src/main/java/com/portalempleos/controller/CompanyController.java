@@ -20,13 +20,14 @@ public class CompanyController {
     private final FileStorageService fileStorage;
 
     public CompanyController(CompanyService service,
-            PasswordEncoder passwordEncoder,
-            FileStorageService fileStorage) {
+                             PasswordEncoder passwordEncoder,
+                             FileStorageService fileStorage) {
         this.service = service;
         this.passwordEncoder = passwordEncoder;
         this.fileStorage = fileStorage;
     }
 
+    // ✔ REGISTRO DE EMPRESA CON VALIDACIONES
     @PostMapping
     public ResponseEntity<?> register(@RequestBody Company company) {
         try {
@@ -48,9 +49,11 @@ public class CompanyController {
         existing.setWebsite(updated.getWebsite());
         existing.setLocation(updated.getLocation());
         existing.setDescription(updated.getDescription());
+
         if (updated.getPassword() != null && !updated.getPassword().isBlank()) {
             existing.setPassword(passwordEncoder.encode(updated.getPassword()));
         }
+
         return ResponseEntity.ok(service.save(existing));
     }
 
@@ -63,9 +66,11 @@ public class CompanyController {
         try {
             String url = fileStorage.save(file, "logos",
                     Set.of("image/png", "image/jpeg", "image/jpg", "image/svg+xml"), null);
+
             Company c = opt.get();
             c.setLogoUrl(url);
             return ResponseEntity.ok(service.save(c));
+
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error subiendo logo: " + e.getMessage());
         }
@@ -78,7 +83,9 @@ public class CompanyController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> findById(@PathVariable Long id) {
-        return service.findById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+        return service.findById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")

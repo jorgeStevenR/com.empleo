@@ -79,4 +79,9 @@ public class ApplicationController {
         service.delete(id);
         return ResponseEntity.ok("🗑️ Postulación eliminada correctamente.");
     }
+
+    @GetMapping("/job/{jobId}")
+    public ResponseEntity<List<Application>> findByJob(@PathVariable Long jobId) {
+    return ResponseEntity.ok(service.findByJobId(jobId));
+}
 }

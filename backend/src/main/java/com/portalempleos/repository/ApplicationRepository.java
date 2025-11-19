@@ -15,4 +15,5 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 
     // 🆕 NUEVO: obtener todas las postulaciones asociadas a un empleoa
     List<Application> findByJob_IdJob(Long jobId);
+    
 }

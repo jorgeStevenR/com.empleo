@@ -8,13 +8,14 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "applications")
 public class Application {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idApplication;
 
     @ManyToOne
     @JoinColumn(name = "id_user")
-    @JsonIgnoreProperties({ "company", "emailEntity", "password", "role", "cvUrl" })
+    @JsonIgnoreProperties({ "company", "password", "role" })
     private User user;
 
     @ManyToOne
@@ -32,7 +33,7 @@ public class Application {
     @Column(name = "applied_at")
     private LocalDateTime appliedAt = LocalDateTime.now();
 
-    // Getters / Setters
+    // Getters y setters
     public Long getIdApplication() {
         return idApplication;
     }

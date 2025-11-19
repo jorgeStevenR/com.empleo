@@ -2,7 +2,6 @@ package com.portalempleos.controller;
 
 import com.portalempleos.model.User;
 import com.portalempleos.model.Company;
-import com.portalempleos.model.enums.Role;
 import com.portalempleos.repository.UserRepository;
 import com.portalempleos.repository.CompanyRepository;
 import com.portalempleos.service.SupabaseS3Service;
@@ -14,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/api/files")
@@ -29,22 +27,20 @@ public class FileController {
             SupabaseS3Service supabaseS3Service,
             FileStorageService fileStorageService,
             UserRepository userRepository,
-            CompanyRepository companyRepository) {
-
+            CompanyRepository companyRepository
+    ) {
         this.supabaseS3Service = supabaseS3Service;
         this.fileStorageService = fileStorageService;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
     }
 
-    // ===================================================
-    // 📌 SUBIR LOGO (S3 CON NOMBRE ÚNICO)
-    // ===================================================
     @PostMapping("/upload/logo/{companyId}")
     public ResponseEntity<?> uploadLogo(
             @PathVariable Long companyId,
             @RequestParam("file") MultipartFile file,
-            Authentication auth) {
+            Authentication auth
+    ) {
 
         try {
             if (auth == null || !auth.isAuthenticated()) {
@@ -59,21 +55,19 @@ public class FileController {
             Optional<User> requesterUserOpt =
                     userRepository.findByEmailEntity_Email(requesterEmail);
 
-            boolean isAdmin = requesterUserOpt.isPresent() &&
-                    requesterUserOpt.get().getRole() == Role.ROLE_ADMIN;
-
             Company target = companyRepository.findById(companyId)
                     .orElseThrow(() -> new RuntimeException("Empresa no encontrada"));
 
-            if (!isAdmin &&
-                    !target.getEmailEntity().getEmail().equalsIgnoreCase(requesterEmail)) {
+            boolean isAdmin = requesterUserOpt.isPresent()
+                    && requesterUserOpt.get().getRole().name().equals("ROLE_ADMIN");
 
-                return ResponseEntity.status(403).body(Map.of(
-                        "error", "No tienes permisos para modificar esta empresa"
-                ));
+            boolean isOwner = requesterCompanyOpt.isPresent()
+                    && requesterCompanyOpt.get().getIdCompany().equals(companyId);
+
+            if (!isAdmin && !isOwner) {
+                return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
             }
 
-            // SUBIR A SUPABASE S3
             String url = supabaseS3Service.uploadCompanyLogo(file, companyId);
 
             target.setLogoUrl(url);
@@ -86,7 +80,48 @@ public class FileController {
 
         } catch (Exception e) {
             return ResponseEntity.internalServerError()
-                    .body(Map.of("error", "Error subiendo logo: " + e.getMessage()));
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PostMapping("/upload/cv/{userId}")
+    public ResponseEntity<?> uploadCv(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file,
+            Authentication auth
+    ) {
+
+        try {
+            if (auth == null || !auth.isAuthenticated()) {
+                return ResponseEntity.status(401).body(Map.of("error", "No autenticado"));
+            }
+
+            Optional<User> userOpt = userRepository.findById(userId);
+
+            if (userOpt.isEmpty()) {
+                return ResponseEntity.status(404).body(Map.of("error", "Usuario no encontrado"));
+            }
+
+            User user = userOpt.get();
+
+            String requesterEmail = auth.getName().toLowerCase();
+            if (!requesterEmail.equals(user.getEmailEntity().getEmail().toLowerCase())) {
+                return ResponseEntity.status(403).body(Map.of("error", "No autorizado"));
+            }
+
+            String url = supabaseS3Service.uploadPdf(file, "cv/" + userId);
+
+            user.setCvUrl(url);
+            userRepository.save(user);
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "CV actualizado correctamente",
+                    "cvUrl", url
+            ));
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 }

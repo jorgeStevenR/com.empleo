@@ -40,72 +40,79 @@ public class SecurityConfig {
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
 
-                        /* ==========================
-                           🔓 RUTAS PÚBLICAS
-                           ========================== */
 
-                        // Ofertas y empresas visibles sin login
+                        /* =========================================
+                           🔓 RUTAS PÚBLICAS (No requieren token)
+                           ========================================= */
                         .requestMatchers(HttpMethod.GET, "/api/jobs/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/companies/**").permitAll()
 
-                        // Login
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
 
-                        // Registro de usuario y empresa
                         .requestMatchers(HttpMethod.POST, "/api/users").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/companies").permitAll()
 
-                        // Archivos estáticos o rutas públicas test
                         .requestMatchers("/files/**").permitAll()
 
 
-                        /* ==========================
-                           🔐 SUBIR ARCHIVOS (Privado)s
-                           ========================== */
+                        /* =========================================
+                           🔐 ARCHIVOS (Privado)
+                           ========================================= */
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/cv/**")
-                            .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
+                                .hasAnyAuthority("ROLE_USER", "ROLE_ADMIN")
 
                         .requestMatchers(HttpMethod.POST, "/api/files/upload/logo/**")
-                            .hasAuthority("ROLE_COMPANY")
+                                .hasAuthority("ROLE_COMPANY")
 
 
-                        /* ==========================
+                        /* =========================================
                            📝 POSTULACIONES
-                           ========================== */
+                           ========================================= */
 
-                        // Crear postulaciones → solo usuarios
-                        .requestMatchers(HttpMethod.POST, "/api/applications").hasAuthority("ROLE_USER")
+                        // Crear postulación
+                        .requestMatchers(HttpMethod.POST, "/api/applications")
+                                .hasAuthority("ROLE_USER")
 
-                        // Ver postulaciones del usuario
-                        .requestMatchers(HttpMethod.GET, "/api/applications/user/**").hasAuthority("ROLE_USER")
+                        // Ver postulaciones de un usuario
+                        .requestMatchers(HttpMethod.GET, "/api/applications/user/**")
+                                .hasAuthority("ROLE_USER")
 
-                        // Empresas ven postulantes por oferta
-                        .requestMatchers(HttpMethod.GET, "/api/applications/job/**").hasAuthority("ROLE_COMPANY")
+                        // Ver postulantes por empleo (empresa)
+                        .requestMatchers(HttpMethod.GET, "/api/applications/job/**")
+                                .hasAuthority("ROLE_COMPANY")
 
-
-                        /* ==========================
-                           🏢 CRUD OFERTAS (Solo Empresa)
-                           ========================== */
-                        .requestMatchers(HttpMethod.POST, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
-                        .requestMatchers(HttpMethod.PUT, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
-                        .requestMatchers(HttpMethod.DELETE, "/api/jobs/**").hasAuthority("ROLE_COMPANY")
+                        // Ver detalle de una postulación específica
+                        .requestMatchers(HttpMethod.GET, "/api/applications/**")
+                                .hasAnyAuthority("ROLE_USER", "ROLE_COMPANY", "ROLE_ADMIN")
 
 
-                        /* ==========================
-                           👤 RUTAS PRIVADAS GENERALES
-                           ========================== */
+                        /* =========================================
+                           🏢 CRUD OFERTAS — Solo empresas
+                           ========================================= */
+                        .requestMatchers(HttpMethod.POST, "/api/jobs/**")
+                                .hasAuthority("ROLE_COMPANY")
+                        .requestMatchers(HttpMethod.PUT, "/api/jobs/**")
+                                .hasAuthority("ROLE_COMPANY")
+                        .requestMatchers(HttpMethod.DELETE, "/api/jobs/**")
+                                .hasAuthority("ROLE_COMPANY")
+
+
+                        /* =========================================
+                           👤 PRIVADO GENERAL
+                           ========================================= */
                         .requestMatchers("/api/users/**").authenticated()
 
-                        // ⚠️ OJO: NO bloqueamos /api/companies porque el registro es público.
-                        // Solo protegemos PUT/DELETE.
-                        .requestMatchers(HttpMethod.PUT, "/api/companies/**").hasAuthority("ROLE_COMPANY")
-                        .requestMatchers(HttpMethod.DELETE, "/api/companies/**").hasAuthority("ROLE_ADMIN")
+                        // Empresas: solo PUT/DELETE protegidos
+                        .requestMatchers(HttpMethod.PUT, "/api/companies/**")
+                                .hasAuthority("ROLE_COMPANY")
+                        .requestMatchers(HttpMethod.DELETE, "/api/companies/**")
+                                .hasAuthority("ROLE_ADMIN")
 
 
-                        /* ==========================
-                           🟢 TODO LO DEMÁS PERMITIDO
-                           ========================== */
+                        /* =========================================
+                           🔥 PERMITIR TODO LO DEMÁS
+                           ========================================= */
                         .anyRequest().permitAll()
                 );
 
